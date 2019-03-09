@@ -146,12 +146,14 @@ do {                                                            \
 
 /* An interrupt descriptor entry (goes into the IDT) */
 typedef union idt_desc_t {
+  //union means the idt_desc_t can either be represented as the 2 int array
+  //OR the as the __attribute__struct
     uint32_t val[2];
     struct {
         uint16_t offset_15_00;
         uint16_t seg_selector;
         uint8_t  reserved4;
-        uint32_t reserved3 : 1;
+        uint32_t reserved3 : 1; //the colon specifies how many bits it is
         uint32_t reserved2 : 1;
         uint32_t reserved1 : 1;
         uint32_t size      : 1;
@@ -159,7 +161,7 @@ typedef union idt_desc_t {
         uint32_t dpl       : 2;
         uint32_t present   : 1;
         uint16_t offset_31_16;
-    } __attribute__ ((packed));
+    } __attribute__ ((packed)); //packed condesnses all the separate bits in the struct
 } idt_desc_t;
 
 /* The IDT itself (declared in x86_desc.S */

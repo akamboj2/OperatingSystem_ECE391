@@ -19,4 +19,6 @@ void paging_init() {
     pageDirectory[0] = page;
     pageDirectory[1] = kernelPage;
     pageTable[VIDEO/0x1000] = videoPage;
+    asm volatile ("MOVL %CR0, %edx; ORL $0x8000, %edx; MOVL %edx, %CR0");
+    asm volatile ("MOVL %CR4, %edx; ORL $0x10, %edx; ANDL $0xFFDF, %edx; MOVL %edx, %CR4");
 }

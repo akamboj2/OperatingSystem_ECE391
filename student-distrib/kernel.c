@@ -8,7 +8,6 @@
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
-#include "paging.h"
 
 #define RUN_TESTS
 
@@ -137,17 +136,10 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
-    //NOTE: if running and get unable to execute debug.sh error do this
-    // dos2unix debug.sh ; chmod +x debug.sh ; make clean ; make
-
-
     //INITIALIZE IDT HERE !
 
     /* Init the PIC */
     i8259_init();
-
-    /* Init paging */
-//    paging_init();
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -161,7 +153,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    //launch_tests();
+    launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 

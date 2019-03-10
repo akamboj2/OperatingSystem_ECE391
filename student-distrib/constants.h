@@ -1,2 +1,4 @@
-#define VIRTUAL_MEMORY_SPACE    4000    //4000 kB
-#define PAGE_MEM_SIZE           4       //4 kB per page
+#define VIRTUAL_MEMORY_SPACE    4294967296    //2^32 bytes
+#define PAGE_MEM_SIZE           4096          //2^12 bytes
+#define PAGE_TABLE_SIZE         1024          //2^10 bytes
+#define VIDEO       0xB8000

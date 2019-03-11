@@ -1,5 +1,4 @@
 #include "paging.h"
-#include "types.h"
 
 uint32_t pageTable[PAGE_TABLE_SIZE];
 uint32_t pageDirectory[PAGE_TABLE_SIZE];
@@ -7,9 +6,9 @@ uint32_t pageDirectory[PAGE_TABLE_SIZE];
 
 void paging_init() {
     int numPages = VIRTUAL_MEMORY_SPACE / PAGE_MEM_SIZE;    //4 MB/4 kB = 4000 kB/4 kb = 1000 pages (4 MB total space, 4kB per page)
-    uint32_t page = 0x016;//10010110;
-    uint32_t kernelPage=0x193;
-    uint32_t videoPage=0x003;
+    uint32_t page = 0x016;      //000010110
+    uint32_t kernelPage=0x193;  //110010011
+    uint32_t videoPage=0x003;   //000000011
     int i;
 
     for(i = 0; i < PAGE_TABLE_SIZE; i++){

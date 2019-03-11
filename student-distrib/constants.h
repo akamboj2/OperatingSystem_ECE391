@@ -6,5 +6,5 @@
 #define PAGE_TABLE_SIZE         0x10        //1024 = 2^5 bytes; 1 KB
                                             //^note this is also pg directory size
 #define VIDEO                   0xB8000     //note: this may already be defined in lib.c
-#define KERNEL_PHYS_ADDR        0x100000    //1048576 = 2^20: 1 MB
+#define KERNEL_PHYS_ADDR        0x400000    //1048576 = 2^20: 1 MB
 #endif /* CONSTANTS_H */

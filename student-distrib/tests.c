@@ -21,7 +21,7 @@ static inline void assertion_failure(){
 /* Checkpoint 1 tests */
 
 /* IDT Test - Example
- * 
+ *
  * Asserts that first 10 IDT entries are not NULL
  * Inputs: None
  * Outputs: PASS/FAIL
@@ -35,7 +35,7 @@ int idt_test(){
 	// int i;
 	int result = PASS;
 	// for (i = 0; i < 10; ++i){
-	// 	if ((idt[i].offset_15_00 == NULL) && 
+	// 	if ((idt[i].offset_15_00 == NULL) &&
 	// 		(idt[i].offset_31_16 == NULL)){
 	// 		assertion_failure();
 	// 		result = FAIL;
@@ -46,7 +46,23 @@ int idt_test(){
 }
 
 // add more tests here
+int paging_test(){
+	/*Values contained in your paging structures
+		Dereferencing different address ranges with paging turned on
+	*/
+	int result = FAIL;
+	printf("Testing paging: result at %x\n",&result);
+	if (&result&&0x400000){
+		//if it's linear addr has bit 22 =1 that means it is in page directory 1
+		//which is where kernel code is supposed to be
+		result =PASS;
+	}
 
+	int* test=NULL;
+	//printf("%d\n",*test);
+	printf("hello\n");
+	return result;
+}
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -55,6 +71,9 @@ int idt_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("idt_test", idt_test());
 	// launch your tests here
+	// TEST_OUTPUT("paging_test",paging_test());
+	paging_test();
+
 }

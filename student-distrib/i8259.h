@@ -21,7 +21,6 @@
 #define ICW3_MASTER         0x04
 #define ICW3_SLAVE          0x02
 #define ICW4                0x01
-
 /* End-of-interrupt byte.  This gets OR'd with
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
@@ -30,7 +29,7 @@
 /* Externally-visible functions */
 
 /* Initialize both PICs */
-void i8259_init(void);
+void i8259_init();
 /* Enable (unmask) the specified IRQ */
 void enable_irq(uint32_t irq_num);
 /* Disable (mask) the specified IRQ */

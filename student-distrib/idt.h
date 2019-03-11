@@ -13,7 +13,7 @@ void bound();
 void invalid_opcode();
 void device_NA();
 void double_fault();
-void coproessor_seg_overrun();
+void coprocessor_seg_overrun();
 void invalid_tss();
 void seg_not_present();
 void stack_seg_fault();

@@ -8,8 +8,15 @@
 #include "i8259.h"
 #include "debug.h"
 #include "tests.h"
+#include "idt.h"
 
 #define RUN_TESTS
+
+#define REG_A 0x8A
+#define REG_B 0x8B
+
+#define RTC_REG 0x70
+#define RTC_RW 0x71
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -137,9 +144,17 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     //INITIALIZE IDT HERE !
-
+    idt_init();
     /* Init the PIC */
     i8259_init();
+    enable_irq(1);
+
+    /*enable_irq(8);
+	outb(0x0A, 0x70);
+	char prev = inb(0x71);
+	outb(0x8B, 0x70);
+	outb(prev | 0x40, 0x71);*/
+
 
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
@@ -148,8 +163,30 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
+    printf("Enabling Interrupts\n");
+    sti();
+
+	cli();
+	//enable_irq(8);
+	//outb(0x8A, 0x70);
+	//outb(0x20, 0x71);
+
+	outb(REG_B, RTC_REG);
+	char prev = inb(RTC_RW);
+	outb(REG_B, RTC_REG);
+	outb(prev|0x40, RTC_RW);
+	//rate &= 0x0E;
+	outb(REG_A, RTC_REG);
+	prev = inb(RTC_RW);
+	outb(REG_A, RTC_REG);
+	outb(0x0E | (prev&0xf0), RTC_RW);
+	enable_irq(8);
+	sti();
+	//rate = 6;
+	//outb(0x8A, 0x70);
+	//char prev1 = inb(0x71);
+	//outb(0x8A, 0x70);
+	//outb((prev&0xF0)|rate, 0x71);
 
 #ifdef RUN_TESTS
     /* Run tests */

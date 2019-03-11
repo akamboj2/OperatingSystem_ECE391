@@ -4,6 +4,7 @@
 #include "i8259.h"
 #include "lib.h"
 
+#define BIT_ONE 0x01
 /* Interrupt masks to determine which interrupts are enabled and disabled */
 uint8_t master_mask = 0xFF; /* IRQs 0-7  */
 uint8_t slave_mask = 0xFF;  /* IRQs 8-15 */
@@ -43,12 +44,14 @@ void i8259_init() {
 void enable_irq(uint32_t irq_num) {
 	if(irq_num <8){
 		master_mask = (MASTER_8259_PORT + 1);
-		master_mask = master_mask & ~(1 << irq_num);
+		char tmp_mask = ~(BIT_ONE << irq_num);
+		master_mask = master_mask & tmp_mask;
 		outb(master_mask, MASTER_8259_PORT + 1);
 	}
 	else{
 		slave_mask = (SLAVE_8259_PORT + 1);
-		slave_mask = slave_mask & ~(1 << (irq_num-8));
+		char tmp_mask =  ~(BIT_ONE << (irq_num-8));
+		slave_mask = slave_mask & tmp_mask;
 		outb(slave_mask, SLAVE_8259_PORT + 1);
 	}
 }
@@ -57,12 +60,14 @@ void enable_irq(uint32_t irq_num) {
 void disable_irq(uint32_t irq_num) {
   	if(irq_num <8){
 		master_mask = (MASTER_8259_PORT + 1);
-		master_mask = master_mask | (1 << irq_num);
+		char tmp_mask = (BIT_ONE << irq_num);
+		master_mask = master_mask | tmp_mask;
 		outb(master_mask, MASTER_8259_PORT + 1);
 	}
 	else{
 		slave_mask = (SLAVE_8259_PORT + 1);
-		slave_mask = slave_mask | (1 << (irq_num-8));
+		char tmp_mask = (BIT_ONE << (irq_num-8));
+		slave_mask = slave_mask | tmp_mask;
 		outb(slave_mask, SLAVE_8259_PORT + 1);
 	}
 }
@@ -70,10 +75,13 @@ void disable_irq(uint32_t irq_num) {
 /* Send end-of-interrupt signal for the specified IRQ */
 
 void send_eoi(uint32_t irq_num) {
-  if(irq_num >= 8){
+
+  if(irq_num >= 0 && irq_num < 8){
+		outb(EOI | irq_num, MASTER_8259_PORT);
+	}
+	else{
+		outb(EOI_SLAVE_PIN, MASTER_8259_PORT);
     outb(EOI | (irq_num-8), SLAVE_8259_PORT);
-	outb(EOI + 2, MASTER_8259_PORT);
   }
-  else
-	outb(EOI | irq_num, MASTER_8259_PORT);
+
 }

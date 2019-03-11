@@ -6,6 +6,7 @@ void idt_init();
 void add_vector(int index, void *handler, int dpl, int type);
 
 void divide_err();
+void debug();
 void nmi();
 void breakpoint();
 void overflow();

@@ -19,11 +19,9 @@
 #define char_upper 0x35
 #define char_lower 0x01
 
-volatile int curr_interrupt_vals_rtc [3] = {0, 0, 0};
-
 void idt_init(){
   add_vector(0, divide_err, K_LVL, CODE_TYPE);
-
+  add_vector(1, debug, K_LVL, CODE_TYPE);
   add_vector(2, nmi, K_LVL, CODE_TYPE);
   add_vector(3, &breakpoint, U_LVL, DATA_TYPE);
   add_vector(4, &overflow, U_LVL, DATA_TYPE);
@@ -63,70 +61,113 @@ void add_vector(int index, void *handler, int privilege, int type){
   idt[index].reserved2 = 1;
   idt[index].reserved3 = type;
   idt[index].reserved4 = 0;
-  if(index == 0){  printf("  %x", idt[index].offset_31_16);  printf("%x  ", idt[index].offset_15_00);}
+  //if(index == 0){  printf("  %x", idt[index].offset_31_16);  printf("%x  ", idt[index].offset_15_00);}
 
 }
 
 void divide_err(){
-  while(1){printf("div by zero");}
+  printf("div by zero");
+  cli();
+  while(1){};
 }
+void debug(){
+  printf("debug");
+  cli();
+  while(1){};
+}
+
 void nmi(){
-	 while(1){printf("NMI");}
+	printf("NMI");
+  cli();
+  while(1){};
 }
 void breakpoint(){
-	 while(1){printf("breakpoint");}
+	 printf("breakpoint");
+   cli();
+   while(1){};
 }
 void overflow(){
-	 while(1){printf("overflow error");}
+	 printf("overflow error");
+   cli();
+   while(1){};
 }
 void bound(){
-	 while(1){printf("out of bounds");}
+	 printf("out of bounds");
+   cli();
+   while(1){};
 }
 void invalid_opcode(){
-	 while(1){printf("invalid opcode");}
+	printf("invalid opcode");
+  cli();
+  while(1){};
 }
 void device_NA(){
-	 while(1){printf("device not available");}
+	 printf("device not available");
+   cli();
+   while(1){};
 }
 void double_fault(){
-	 while(1){printf("double fault");}
+	 printf("double fault");
+   cli();
+   while(1){};
 }
 void coprocessor_seg_overrun(){
-	 while(1){printf("coprecessor segment overrun");}
+	printf("coprecessor segment overrun");
+  cli();
+  while(1){};
 }
 void invalid_tss(){
-	 while(1){printf("invalid tss");}
+	printf("invalid tss");
+  cli();
+  while(1){};
 }
 void seg_not_present(){
-	 while(1){printf("segment not present");}
+	 printf("segment not present");
+   cli();
+   while(1){};
 }
 void stack_seg_fault(){
-	 while(1){printf("stack segment fault");}
+	 printf("stack segment fault");
+   cli();
+   while(1){};
 }
 void general_protection(){
-	 while(1){printf("general protection");}
+	 printf("general protection");
+   cli();
+   while(1){};
 }
 void page_fault(){
-	 while(1){printf("page fault");}
+   clear();
+	 printf("page fault");
+   cli();
+   while(1){};
 }
 void floating_point_err(){
-	 while(1){printf("floating point error");}
+	 printf("floating point error");
+   cli();
+   while(1){};
 }
 void alignment_check(){
-	 while(1){printf("alignment check");}
+	 printf("alignment check");
+   cli();
+   while(1){};
 }
 void machine_check(){
-	 while(1){printf("machine check");}
+	 printf("machine check");
+   cli();
+   while(1){};
 }
 void floating_point_exception(){
-	 while(1){printf("floating point exception");}
+	 printf("floating point exception");
+   cli();
+   while(1){};
 }
 void system_calls(){}
 void rtc_interrupt(){
-	printf("RTC triggered");
-	//test_interrupts();
+	printf(" Call Me Maybe");
 	cli();
-	test_interrupts();
+	//test_interrupts(); //this is commented out as of mOnday morning
+  //credit to https://wiki.osdev.org/RTC
 	outb(REG_C, RTC_REG);
 	inb(RTC_RW);
 	sti();

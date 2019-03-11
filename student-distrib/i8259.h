@@ -25,7 +25,7 @@
  * the interrupt number and sent out to the PIC
  * to declare the interrupt finished */
 #define EOI                 0x60
-
+#define EOI_SLAVE_PIN       0x62
 /* Externally-visible functions */
 
 /* Initialize both PICs */

@@ -22,7 +22,7 @@ static inline void assertion_failure(){
 
 /* IDT Test - Example
  *
- * Asserts that first 10 IDT entries are not NULL
+ * Asserts that first 10 IDT entries are not NULL. Also used to test div by zero exception handler
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: None
@@ -50,6 +50,14 @@ int idt_test(){
 	return result;
 }
 
+/*Paging Test
+ *
+ * Asserts that null ptr results in a page fault
+ * Inputs: None
+ * Outputs: page fault
+ * Side Effects: kernel crashes
+ * Coverage: requires idt to be implented in order to result in page fault
+ */
 int paging_test(){
 	/*Values contained in your paging structures
 		Dereferencing different address ranges with paging turned on
@@ -80,6 +88,5 @@ int paging_test(){
 /* Test suite entry point */
 void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
 	paging_test();
 }

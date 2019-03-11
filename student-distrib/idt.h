@@ -1,10 +1,13 @@
 #ifndef _IDT
 #define _IDT
 
+//initializating for idt
 void idt_init();
 
+//helper function to add vectors to idt
 void add_vector(int index, void *handler, int dpl, int type);
 
+//various handlers below
 void divide_err();
 void debug();
 void nmi();

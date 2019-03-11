@@ -19,10 +19,14 @@
 #define char_upper 0x35
 #define char_lower 0x01
 
+/*idt_init
+* adds vector to the the idt
+* modifies the idt
+*/
 void idt_init(){
-  add_vector(0, divide_err, K_LVL, CODE_TYPE);
-  add_vector(1, debug, K_LVL, CODE_TYPE);
-  add_vector(2, nmi, K_LVL, CODE_TYPE);
+  add_vector(0, &divide_err, K_LVL, CODE_TYPE);
+  add_vector(1, &debug, K_LVL, CODE_TYPE);
+  add_vector(2, &nmi, K_LVL, CODE_TYPE);
   add_vector(3, &breakpoint, U_LVL, DATA_TYPE);
   add_vector(4, &overflow, U_LVL, DATA_TYPE);
   add_vector(5, &bound, U_LVL, DATA_TYPE);
@@ -48,6 +52,12 @@ void idt_init(){
   //return;
 }
 
+/*add_vector
+*index - where in table to add vector
+*handler - ptr to the interrupt handler of that vector
+*privilege - sets whether user or kernel level 3 or 0 respectively
+*type - determines if a trap or sys call
+*/
 void add_vector(int index, void *handler, int privilege, int type){
   //set handler idt[index]
 
@@ -65,6 +75,9 @@ void add_vector(int index, void *handler, int privilege, int type){
 
 }
 
+/*
+*ALL interrupt handler functions below
+*/
 void divide_err(){
   printf("div by zero");
   cli();
@@ -163,6 +176,10 @@ void floating_point_exception(){
    while(1){};
 }
 void system_calls(){}
+/*rtc_interrupt
+*makes sure to clean the status register (regitser C)
+* sends eoi to signify done with interrupt
+*/
 void rtc_interrupt(){
 	printf(" Call Me Maybe");
 	cli();
@@ -173,6 +190,12 @@ void rtc_interrupt(){
 	sti();
 	send_eoi(8);
 }
+/*keyboard_interrupt
+* reads the character written by checking the keyboard port register (0x60)
+* then maps that value to the character table and prints the resulting charcater
+* to the screen.
+* sends eoi to signify done with interrupt
+*/
 void keyboard_interrupt(){
 	char char_list[53] = {'\0','1','2','3','4','5','6','7',
 						'8','9','0','-','=','\0','\0','q','w',

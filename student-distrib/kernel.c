@@ -150,6 +150,7 @@ void entry(unsigned long magic, unsigned long addr) {
     paging_init();
     /* Init the PIC */
     i8259_init();
+    //initialiaze the keybaord irq
     enable_irq(1);
 
     /*enable_irq(8);
@@ -166,7 +167,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Do not enable the following until after you have set up your
      * IDT correctly otherwise QEMU will triple fault and simple close
      * without showing you any output */
-    printf("Enabling Interrupts\n");
+    //printf("Enabling Interrupts\n");
     sti();
     clear();
 
@@ -176,6 +177,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	//outb(0x20, 0x71);
 
   //credit to https://wiki.osdev.org/RTC
+  //enables the RTC and sets the rate 
 	outb(REG_B, RTC_REG);
 	char prev = inb(RTC_RW);
 	outb(REG_B, RTC_REG);
@@ -184,7 +186,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	prev = inb(RTC_RW);
 	outb(REG_A, RTC_REG);
 	outb(RATE_RTC | (prev&0xf0), RTC_RW);
-	enable_irq(8);
+	enable_irq(8);                               //initialize the rtc irq line
 	sti();
 	//rate = 6;
 	//outb(0x8A, 0x70);

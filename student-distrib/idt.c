@@ -6,6 +6,7 @@
 #include "lib.h"
 #include "assembly_linkage.h"
 #include "i8259.h"
+#include "keyboard.h"
 
 
 #define U_LVL 3
@@ -15,9 +16,7 @@
 #define REG_C 0x0C
 #define RTC_REG 0x70
 #define RTC_RW 0x71
-#define keyboard_port 0x60
-#define char_upper 0x35
-#define char_lower 0x01
+
 
 /*idt_init
 * adds vector to the the idt
@@ -181,7 +180,7 @@ void system_calls(){}
 * sends eoi to signify done with interrupt
 */
 void rtc_interrupt(){
-	printf(" Call Me Maybe");
+	//printf(" Call Me Maybe");
 	cli();
 	//test_interrupts(); //this is commented out as of mOnday morning
   //credit to https://wiki.osdev.org/RTC
@@ -197,17 +196,5 @@ void rtc_interrupt(){
 * sends eoi to signify done with interrupt
 */
 void keyboard_interrupt(){
-	char char_list[53] = {'\0','1','2','3','4','5','6','7',
-						'8','9','0','-','=','\0','\0','q','w',
-						'e','r','t','y','u','i','o','p','[',']',
-						'\0','\0','a','s','d','f','g','h','j',
-						'k','l',';','\'','`','\0','\\','z',
-						'x','c','v','b','n','m',',','.','/'};
-	char c = inb(keyboard_port);
-	if(c<=char_upper && c>=char_lower){
-		char print_char = char_list[c-1];
-		printf("%c", print_char);
-	}
-
-	send_eoi(1);
+	keyboard_handler();
 }

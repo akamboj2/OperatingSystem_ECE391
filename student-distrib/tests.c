@@ -87,6 +87,6 @@ int paging_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	//TEST_OUTPUT("idt_test", idt_test());
-	paging_test();
+	TEST_OUTPUT("idt_test", idt_test());
+	//paging_test();
 }

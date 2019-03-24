@@ -24,6 +24,43 @@ void clear(void) {
     }
 }
 
+void scroll(void) {
+    int32_t i;
+    for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1));
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+    for (i = (NUM_ROWS-1) * NUM_COLS; i < (NUM_ROWS) * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+int get_screenx(){
+  return screen_x;
+}
+
+int get_screeny(){
+  return screen_y;
+}
+
+void set_cursors(int pos_x, int pos_y){
+  screen_x = pos_x;
+  screen_y = pos_y;
+}
+
+
+//credit to https://wiki.osdev.org/Text_Mode_Cursor
+void update_cursor(int x, int y){
+	uint16_t pos = (y * NUM_COLS) + x;
+
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
+
+
 /* Standard printf().
  * Only supports the following format strings:
  * %%  - print a literal '%' character
@@ -175,9 +212,15 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+        screen_y = (screen_y + (screen_x / NUM_COLS));
         screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
+    if(screen_y >= NUM_ROWS){
+      scroll();
+      screen_y--;
+      screen_x = 0;
+    }
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

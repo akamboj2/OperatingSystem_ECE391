@@ -7,9 +7,10 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
 
-int file_open();
-int file_close();
-int file_read(int count, char* buf);
-int file_write();
+int32_t read (int32_t fd, void* buf, int32_t nbytes);
+int32_t write (int32_t fd, const void* buf, int32_t nbytes);
+int32_t open (const uint8_t* filename);
+int32_t close (int32_t fd);
+
 
 #endif /* _FILESYS_H */

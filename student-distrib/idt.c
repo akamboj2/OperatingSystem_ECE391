@@ -7,6 +7,7 @@
 #include "assembly_linkage.h"
 #include "i8259.h"
 #include "keyboard.h"
+#include "rtc.h"
 
 
 #define U_LVL 3
@@ -46,7 +47,7 @@ void idt_init(){
 
   add_vector(0x80, &system_calls, U_LVL, DATA_TYPE);
 
-  add_vector(40, &rtc_interrupt, K_LVL, DATA_TYPE);
+  add_vector(40, &rtc_assembly, K_LVL, DATA_TYPE);
   add_vector(33, &keyboard_assembly, K_LVL, DATA_TYPE);
   //return;
 }
@@ -175,6 +176,7 @@ void floating_point_exception(){
    while(1){};
 }
 void system_calls(){}
+
 /*rtc_interrupt
 *makes sure to clean the status register (regitser C)
 * sends eoi to signify done with interrupt
@@ -184,6 +186,7 @@ void rtc_interrupt(){
   rtc_handler();
   sti();
 }
+
 /*keyboard_interrupt
 * reads the character written by checking the keyboard port register (0x60)
 * then maps that value to the character table and prints the resulting charcater

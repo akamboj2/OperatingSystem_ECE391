@@ -24,6 +24,10 @@ void clear(void) {
     }
 }
 
+/* void scroll(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Moves video memory up one row and clears bottom row */
 void scroll(void) {
     int32_t i;
     for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
@@ -36,14 +40,26 @@ void scroll(void) {
     }
 }
 
+/* int get_screenx();
+ * Inputs: none
+ * Return Value: x-position of where to write in video memory
+ * Function: Clears video memory */
 int get_screenx(){
   return screen_x;
 }
 
+/* int get_screeny();
+ * Inputs: none
+ * Return Value: y-position of where to write in video memory
+ * Function: Clears video memory */
 int get_screeny(){
   return screen_y;
 }
 
+/* void set_cursors(int pos_x, int pos_y)
+ * Inputs: x and y postitions to set cursor to
+ * Return Value: none
+ * Function: changes cursor positon */
 void set_cursors(int pos_x, int pos_y){
   screen_x = pos_x;
   screen_y = pos_y;
@@ -51,6 +67,10 @@ void set_cursors(int pos_x, int pos_y){
 
 
 //credit to https://wiki.osdev.org/Text_Mode_Cursor
+/* void update_cursor(int x, int y)
+ * Inputs: x and y coordinates to set physical cursor to
+ * Return Value: none
+ * Function: Modifies position of text to video memory cursor */
 void update_cursor(int x, int y){
 	uint16_t pos = (y * NUM_COLS) + x;
 

@@ -14,17 +14,28 @@
 
 volatile int nio_flag = 0;
 
+/* rtc_handler() : is called from idt and handles what needs
+ *                 to be done whenever an rtc interrupt occurs
+ * INPUTS: None
+ * OUPUTS: None
+ * SIDE EFFECTS: sends eoi signal to PIC and prints for test purposes
+ */
 void rtc_handler(){
   printf(" 1");
-  //cli();
+  cli();
 
   outb(REG_C, RTC_REG);
   inb(RTC_RW);
-//  sti();
+  sti();
   nio_flag = 1;
   send_eoi(8);
 }
 
+/* rtc_open() : is called in kernel.c, initializes the rtc driver
+ * INPUTS: None
+ * OUPUTS: 0
+ * SIDE EFFECTS: sets nio_flag to 0, communicates with rtc ports
+ */
 int rtc_open(){
     cli();
     nio_flag = 0;
@@ -37,22 +48,40 @@ int rtc_open(){
     return 0;
 }
 
+/* rtc_close() : does nothing at the moment
+ * INPUTS: None
+ * OUTPUTS: 0
+ * SIDE EFFECTS: None
+ */
 int rtc_close(){
     return 0;
 }
 
+/* rtc_read() : blocks until next interrupt occurs. when this
+ *              happens we return 0.
+ * INPUTS: None
+ * OUPUTS: return 0
+ * SIDE EFFECTS: this function does not return until another
+ *               interrupt is detected. after this occurs, it
+ *               exits the loop and resets the flag.
+ */
 int rtc_read(){
     int i;
-    while(!nio_flag){
-      for(i = 0; i<1000; i++);
+    while(!nio_flag){   //flag used to hold loop
+      for(i = 0; i<1000; i++);    //used to prevent page faults by slowing down loop
     }
     nio_flag = 0;
     return 0;
 }
 
+/* rtc_write() : changes the RTC frequency
+ * INPUTS: rate - frequency to change to
+ * OUPUTS: return 0
+ * SIDE EFFECTS: chnages the frequency of the RTC
+ */
 int rtc_write(int rate){
     rate &= 0x0F;
-    if (rate >= 15 || rate <= 2)
+    if (rate >= 15 || rate <= 2)  //ensures the rate is within the bounds
         return -1;
     cli();
     char prev;

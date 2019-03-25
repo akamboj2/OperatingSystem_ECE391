@@ -77,26 +77,29 @@ int paging_test(){
 	return result;
 }
 
-void rtc_test(){
-	int i, c;
-	for(i=3; i<=14; i++){
-			set_cursors(0,0);
-			rtc_write(i);
-			for (c = 0; c <= 100; c++){
-				rtc_read();
-				//printf(" ");
-				//d++;
-				update_cursor(get_screenx(), get_screeny());
-			}
-			clear();
-		}
-
-}
-
 
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+/*RTC Test
+ *
+ * Inputs: None
+ * Outputs: writes to video memory and clears
+ * Side Effects: clears prior state of video memory
+ */
+void rtc_test(){
+	int i, c;
+	for(i=3; i<=14; i++){	//tests RTC by modifying freq through write and using read to delay
+			set_cursors(0,0);
+			rtc_write(i);
+			for (c = 0; c <= 100; c++){
+				rtc_read();
+				update_cursor(get_screenx(), get_screeny());
+			}
+			clear();
+		}
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */

@@ -15,6 +15,7 @@ int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
 
+//used created functions
 void scroll(void);
 int get_screenx();
 int get_screeny();

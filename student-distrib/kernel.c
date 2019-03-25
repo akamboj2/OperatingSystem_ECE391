@@ -10,6 +10,7 @@
 #include "tests.h"
 #include "idt.h"
 #include "paging.h"
+#include "filesys.c"
 
 #define RUN_TESTS
 
@@ -180,7 +181,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	//outb(0x20, 0x71);
 
   //credit to https://wiki.osdev.org/RTC
-  //enables the RTC and sets the rate 
+  //enables the RTC and sets the rate
 	outb(REG_B, RTC_REG);
 	char prev = inb(RTC_RW);
 	outb(REG_B, RTC_REG);

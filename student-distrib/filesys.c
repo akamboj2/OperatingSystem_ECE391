@@ -1,25 +1,24 @@
 #include "filesys.h"
-
+#include "lib.h"
 
 /*
  * read_dentry_by_name
- *   DESCRIPTION: find the data entry by name and return data entry as with the file name, 
- *                file type, and inode number for the file, 
+ *   DESCRIPTION: find the data entry by name and return data entry as with the file name,
+ *                file type, and inode number for the file,
  *   INPUTS: fname-- pointer to a string as a character(int) array
  *   OUTPUTS: dentry-- pointer to data entry
  *   RETURN VALUE: -1 on failure, 0 on success
  *   SIDE EFFECTS: dentry will be undefined (probs pointing to end of boot block) if entry not in list!
  */
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry){
-    uint8_t name[32];//name data field is 32B in dir. entry
     int count=0;
     int amt_dentrys=63;
     dentry = (dentry_t*) filesys_addr; //filesys_addr is global varialbe in kernel.c
     dentry++;//skip the initial boot block entry
 
-    for (count=0;count<dentry;count++){
-        name=dentry; //this should make the frist 32 bytes after dentry equal to name
-        if (fname==name){
+    for (count=0; count<amt_dentrys; count++){
+        //name=dentry; //this should make the frist 32 bytes after dentry equal to name
+        if (!strncmp(dentry->file_n,(int8_t*)fname,32)){
             return 0;//success! dentry should alrady be pointing at correct thing
         }
     }
@@ -28,14 +27,14 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry){
 
 /*
  * read_dentry_by_index
- *   DESCRIPTION: find the data entry by index into bootblock and return data entry as with the file name, 
- *                file type, and inode number for the file, 
+ *   DESCRIPTION: find the data entry by index into bootblock and return data entry as with the file name,
+ *                file type, and inode number for the file,
  *   INPUTS: fname-- pointer to a string as a character(int) array
  *   OUTPUTS: dentry-- pointer to data entry
  *   RETURN VALUE: -1 on failure, 0 on success
  *   SIDE EFFECTS: none
  */
-int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry){
+int read_dentry_by_index (uint32_t index, dentry_t* dentry){
     if (index<0 || index >63){//64 data entries so if index is >63 it is out of bounds
         return -1;
     }
@@ -61,35 +60,37 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     // }///^don't do that bc that function is index into bootblock not inode number
 
     int amt_inodes=63;
-    int* inode_block= filesys_addr;
+    int* inode_block= (int*)filesys_addr;
 
-    //skip boot block
-    inode_block+=MEM_SIZE_4kB/4; //need to divide by 4 because it's pointer arithmenic and int is 4 bytes
+
+    inode_block+=MEM_SIZE_4kB/4; //skip boot block
+    //need to divide by 4 because it's pointer arithmenic and int is 4 bytes
     inode_block+=inode*MEM_SIZE_4kB/4;
     //now inode_block should be pointing to correct inode
-    
-    int file_length=inode_block;//the first thing in inode_block is 4B int of length of file in bytes
+
+    int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
     if (offset>file_length){ return -1; }
 
     int skip_dbs=offset/MEM_SIZE_4kB; //if your offset is more than 4kb u have to know which data blcok to go to
-    int offset_indb=offset % MEM_SIZE_4kB //how far into the block to offset before beginning to read
+    int offset_indb=offset % MEM_SIZE_4kB; //how far into the block to offset before beginning to read
     inode_block++; //skip length bytes in inode
 
     inode_block+=skip_dbs;
     //now inode_block is pointing to the correct data block #
 
-    char* data_block= filesys_addr;
+    char* data_block= (char*) filesys_addr;
     data_block+=MEM_SIZE_4kB*(amt_inodes); //skip all 64, 4kb chunks of memory (1 bootblock + 63 inode blocks)
-    
-    
+
+
     int count=0; //for how many bytes are copied
-    char* at_db=data_block + *inode_block*MEM_SIZE_4kB + offset_indb];//this shoud point to the start of file data (from where we want to read)
-    while(*at_db !=EOF && length<=count){           //check if this is actually the end of file character
-        *buf=*at_db; //do the copy 
+    char* at_db=data_block + *inode_block*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
+    char eof=26; //end of file character
+    while(*at_db !=eof && length<=count){           //check if this is actually the end of file character
+        *buf=*at_db; //do the copy
         buf++;
         at_db++;
         count++;
-        if (at_db % MEM_SIZE_4kB==0){//this means u are done with this data block! move to next
+        if ((int)at_db % MEM_SIZE_4kB==0){//this means u are done with this data block! move to next
             inode_block++; //this should jump 4 bytes to the index of the next data block
             at_db=data_block+*inode_block*MEM_SIZE_4kB; //don't need the offset_indb bc we're reading from the begining of the next blocks
         }
@@ -103,7 +104,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 /*
  * read
  *   DESCRIPTION: reads count bytes of data from file into buf. Uses read_data.
- *                maybe uses read_dentry_by index (index is not inode number but 
+ *                maybe uses read_dentry_by index (index is not inode number but
  *                bootblock idx).
  *                In the case of a file, data should be read to the end of the file or the end of the buffer provided, whichever occurs
                   sooner. In the case of reads to the directory, only the filename should be provided (as much as fits, or all 32 bytes), and
@@ -116,18 +117,18 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  */
 int32_t read (int32_t fd, void* buf, int32_t nbytes){
     //if dir_entry has not been  read before then read it by file name
-    if(!dir_entry && read_dentry_by_name(FILE_NAME,d)){ 
+    if(!dir_entry && read_dentry_by_name(FILE_NAME,dir_entry)){
         return -1; //if reading fails return fail
     }
-    if (dir_entry(int)>=_filesys_addr+NUM_INODES*64){
+    if ((int)dir_entry>=filesys_addr+NUM_INODES*64){
          //each directory entry is 64 bytes and there are NUM_inodes of them
          return 0; //this means it is out of the bootblock
     }
 
     //now read the file
-    int* inode_num=dir_entry;
+    int* inode_num= (int*)dir_entry;
     inode_num+=9; //increment 36 bytes to point at inode num
-    return read_data(inode_num,0,buf, nbytes);
+    return read_data(*inode_num,0,buf, nbytes);
 
     dir_entry++; //move to dir entry if done (should increment by 64 bytes)
 }
@@ -140,21 +141,21 @@ int32_t read (int32_t fd, void* buf, int32_t nbytes){
  *   RETURN VALUE: -1
  *   SIDE EFFECTS: none
  */
-int32_t write (int32_t fd, const void* buf, int32_t nbytes){
+int write (int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }
 
 
 /*
  * open
- *   DESCRIPTION: Initialize and temporary structures and opens a 
+ *   DESCRIPTION: Initialize and temporary structures and opens a
  *                file directory (note file types). Uses read_dentry_by_name
  *   INPUTS: none
  *   OUTPUTS: none
  *   RETURN VALUE: 0
  *   SIDE EFFECTS: can only have one file open at a time
  */
-int32_t open (const uint8_t* filename){
+int open (const uint8_t* filename){
     FILE_NAME=filename;
     dir_entry=NULL; //indicates no reads yet
     return 0;
@@ -170,7 +171,7 @@ int32_t open (const uint8_t* filename){
  *   RETURN VALUE: 0
  *   SIDE EFFECTS: none
  */
-int32_t close (int32_t fd){
+int close (int32_t fd){
     FILE_NAME=NULL;
     return 0;
 }

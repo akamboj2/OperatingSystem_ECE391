@@ -1,11 +1,21 @@
 #ifndef _FILESYS_H
 #define _FILESYS_H
 
-#define MEM_SIZE_4kB          0x1000      //4096 = 2^12 bytes; 4 KB
-#define NUM_INODES            64          // 63 inodes + bootblock 
-static uint8_t* FILE_NAME    //file scope variable indicating name of file to open
-static dentry_t* dir_entry       //to hold 
+#include "types.h"
 
+#define MEM_SIZE_4kB          0x1000      //4096 = 2^12 bytes; 4 KB
+#define NUM_INODES            64          // 63 inodes + bootblock
+
+typedef struct dentry_t{
+  int8_t file_n[32]; //this struct just needs to take up 64 bytes;
+  int file_type;
+  int inode_num;
+  char reserved[24];
+} dentry_t;
+
+uint8_t* FILE_NAME;    //file scope variable indicating name of file to open
+dentry_t* dir_entry;       //to hold
+extern int32_t filesys_addr;
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);

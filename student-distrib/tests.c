@@ -110,7 +110,7 @@ void readDir_test(){
 	dentry_t* testd;
 	dentry_t test;
 	testd=&test;
-	read_dentry_by_name("sigtest",testd);
+	read_dentry_by_name((uint8_t*)"sigtest",testd);
 //	printf("test is %s \n",testd->file_name);
 	//printf("testing read_dentry_by_name: %d",testd== )
 
@@ -134,17 +134,17 @@ void read_text(){
 	dentry_t* testd;
 	dentry_t test;
 	testd=&test;
-	read_dentry_by_name("",testd);
+	read_dentry_by_name((uint8_t*)"",testd);
 //	printf("test is %s \n",testd->file_name);
 	//printf("testing read_dentry_by_name: %d",testd== )
 
 	uint8_t buf[CONTENT_BUFFER+1];
 
-	file_open("verylargetextwithverylongname.tx");
+	file_open((uint8_t*)"verylargetextwithverylongname.tx");
 	//file_open("frame0.txt");
 	file_read(0,buf,CONTENT_BUFFER);
 	file_close(0);
-	printf(buf);
+	printf((int8_t*)buf);
 
 }
 
@@ -154,16 +154,16 @@ void read_exec(){
 	dentry_t* testd;
 	dentry_t test;
 	testd=&test;
-	read_dentry_by_name("",testd);
+	read_dentry_by_name((uint8_t*)"",testd);
 //	printf("test is %s \n",testd->file_name);
 	//printf("testing read_dentry_by_name: %d",testd== )
 
 	uint8_t buf[CONTENT_BUFFER+1];
 
-	file_open("fish");
+	file_open((uint8_t*)"fish");
 	file_read(0,buf,CONTENT_BUFFER);
 	file_close(0);
-	putfile(buf);
+	putfile((int8_t*)buf);
 
 }
 

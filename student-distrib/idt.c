@@ -183,7 +183,7 @@ void system_calls(){}
 */
 void rtc_interrupt(){
   cli();
-  rtc_handler();
+  //rtc_handler();
   sti();
 }
 

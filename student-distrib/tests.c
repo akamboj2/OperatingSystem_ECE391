@@ -10,6 +10,10 @@
 
 #define CONTENT_BUFFER 8000
 
+#define MINSPEED 14
+#define MAXSPEED 3
+#define RTC_INTERVAL 100
+
 /* format these macros as you see fit */
 #define TEST_HEADER 	\
 	printf("[TEST %s] Running %s at %s:%d\n", __FUNCTION__, __FUNCTION__, __FILE__, __LINE__)
@@ -94,10 +98,10 @@ int paging_test(){
  */
 void rtc_test(){
 	int i, c;
-	for(i=3; i<=14; i++){	//tests RTC by modifying freq through write and using read to delay
+	for(i=MAXSPEED; i<=MINSPEED; i++){	//tests RTC by modifying freq through write and using read to delay
 			set_cursors(0,0);
 			rtc_write(i);
-			for (c = 0; c <= 100; c++){
+			for (c = 0; c <= RTC_INTERVAL; c++){
 				rtc_read();
 				update_cursor(get_screenx(), get_screeny());
 			}
@@ -124,7 +128,7 @@ void readDir_test(){
 
 	 	printf("file %d: ",i);
 		print_withoutnull(testind->file_name, 32);
-		printf(" type: %d, inode: %d,\n",testind->file_type,testind->inode_num);
+		printf(" type: %d, inode: %d \n",testind->file_type,testind->inode_num);
 	}
 }
 
@@ -177,8 +181,8 @@ void read_exec(){
 void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
-	//rtc_test();
+	rtc_test();
 	//readDir_test();
-	read_text();
+	//read_text();
 	//read_exec();
 }

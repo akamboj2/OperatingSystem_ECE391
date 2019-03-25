@@ -66,9 +66,9 @@ int rtc_close(){
  *               exits the loop and resets the flag.
  */
 int rtc_read(){
-    int i;
+    //int i;
     while(!nio_flag){   //flag used to hold loop
-      for(i = 0; i<1000; i++);    //used to prevent page faults by slowing down loop
+
     }
     nio_flag = 0;
     return 0;

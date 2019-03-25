@@ -175,8 +175,9 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
+
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        screen_x %= NUM_COLS;
     }
 }
 

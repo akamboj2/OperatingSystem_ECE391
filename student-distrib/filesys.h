@@ -2,6 +2,10 @@
 #define _FILESYS_H
 
 #define MEM_SIZE_4kB          0x1000      //4096 = 2^12 bytes; 4 KB
+#define NUM_INODES            64          // 63 inodes + bootblock 
+static uint8_t* FILE_NAME    //file scope variable indicating name of file to open
+static dentry_t* dir_entry       //to hold 
+
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);
 int32_t read_dentry_by_index (uint32_t index, dentry_t* dentry);

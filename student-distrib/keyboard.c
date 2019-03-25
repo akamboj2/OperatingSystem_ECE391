@@ -50,14 +50,14 @@ unsigned char rw_buffer[KB_BUF_SIZE];
  */
 void keyboard_handler(){
 	char char_list[53] = {'\0','1','2','3','4','5','6','7',
-						'8','9','0','-','=','\0','\t','q','w',
+						'8','9','0','-','=','\0','\0','q','w',
 						'e','r','t','y','u','i','o','p','[',']',
 						'\n','\0','a','s','d','f','g','h','j',
 						'k','l',';','\'','`','\0','\\','z',
 						'x','c','v','b','n','m',',','.','/'};
 
   char upper_char_list[53] = {'\0','!','@','#','$','%','^','&',
-            '*','(',')','_','+','\0','\t','Q','W',
+            '*','(',')','_','+','\0','\0','Q','W',
             'E','R','T','Y','U','I','O','P','{','}',
             '\n','\0','A','S','D','F','G','H','J',
             'K','L',':','\"','~','\0','|','Z',
@@ -115,6 +115,19 @@ void keyboard_handler(){
       update_cursor(get_screenx(), get_screeny());
       keyboard_buffer_index--;
   }
+	else if(c == ENTER_PRESS){		//when enter is pressed, call terminal read and write to repeat onto new line
+		//keyboard_buffer[keyboard_buffer_index] = '\n';
+		//keyboard_buffer[keyboard_buffer_index + 1] = '\0';
+		int n = terminal_read(0,rw_buffer,KB_BUF_SIZE);
+		printf("%c", '\n');
+		terminal_write(0,rw_buffer,n);
+		int i; 																																						//CLEARS BUFFER FOR TESTING PURPOSES ONLY
+		for(i = 0; i < KB_BUF_SIZE; i++){
+			keyboard_buffer[i] = '\0';
+			rw_buffer[i] = '\0';
+		}
+		keyboard_buffer_index = 0;
+	}
 	else if(c<=char_upper && c>=char_lower){		//outputs all other types of characters
     char print_char;
     if(cap_flag && ((c>=Q && c<=P) || (c>=A && c<=L) || (c>=Z && c<=M)) && !shift_key)
@@ -123,23 +136,12 @@ void keyboard_handler(){
 		   print_char = char_list[c-1];
     else if(shift_key)
   		 print_char = upper_char_list[c-1];
-    if(keyboard_buffer_index < KB_BUF_SIZE-1){
+    if(keyboard_buffer_index < KB_BUF_SIZE-1 && print_char != '\0'){
       keyboard_buffer[keyboard_buffer_index] = print_char;
       keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
       printf("%c", print_char);
     }
-	}
-
-	if(c == ENTER_PRESS){		//when enter is pressed, call terminal read and write to repeat onto new line
-		int n = terminal_read(0,rw_buffer,KB_BUF_SIZE);
-		terminal_write(0,rw_buffer,n);
-		int i; 																																						//CLEARS BUFFER FOR TESTING PURPOSES ONLY
-		for(i = 0; i < KB_BUF_SIZE; i++){
-			keyboard_buffer[i] = '\0';
-			rw_buffer[i] = '\0';
-		}
-		keyboard_buffer_index = 0;
 	}
 
 	send_eoi(1);
@@ -192,5 +194,5 @@ int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
 int32_t terminal_write(int32_t fd, unsigned char* buf, int32_t nbytes){
 	if(nbytes == 0 || buf[0] == '\0')
 		return -1;
-  return printf(buf);
+  return printf((int8_t*)buf);
 }

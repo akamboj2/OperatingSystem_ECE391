@@ -10,6 +10,8 @@
 #include "tests.h"
 #include "idt.h"
 #include "paging.h"
+#include "keyboard.h"
+#include "rtc.h"
 
 #define RUN_TESTS
 
@@ -189,6 +191,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	outb(REG_A, RTC_REG);
 	outb(RATE_RTC | (prev&0xf0), RTC_RW);*/
   rtc_open();
+  //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
 	sti();
 	//rate = 6;

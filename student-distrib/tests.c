@@ -109,6 +109,12 @@ void rtc_test(){
 		}
 }
 
+/*RTC Test
+ *
+ * Inputs: None
+ * Outputs: writes to video memory and clears
+ * Side Effects: clears prior state of video memory
+ */
 void readDir_test(){
 	set_cursors(0,0);
 	dentry_t* testd;
@@ -132,6 +138,12 @@ void readDir_test(){
 	}
 }
 
+/*RTC Test
+ *
+ * Inputs: None
+ * Outputs: writes to video memory and clears
+ * Side Effects: clears prior state of video memory
+ */
 void read_text(){
 	set_cursors(0,0);
 
@@ -152,6 +164,12 @@ void read_text(){
 
 }
 
+/*RTC Test
+ *
+ * Inputs: None
+ * Outputs: writes to video memory and clears
+ * Side Effects: clears prior state of video memory
+ */
 void read_exec(){
 	set_cursors(0,0);
 

@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "rtc.h"
 
 #define PASS 1
 #define FAIL 0
@@ -76,6 +77,22 @@ int paging_test(){
 	return result;
 }
 
+void rtc_test(){
+	int i, c;
+	for(i=3; i<=14; i++){
+			set_cursors(0,0);
+			rtc_write(i);
+			for (c = 0; c <= 100; c++){
+				rtc_read();
+				//printf(" ");
+				//d++;
+				update_cursor(get_screenx(), get_screeny());
+			}
+			clear();
+		}
+
+}
+
 
 // add more tests here
 
@@ -87,6 +104,7 @@ int paging_test(){
 
 /* Test suite entry point */
 void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
+	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
+	rtc_test();
 }

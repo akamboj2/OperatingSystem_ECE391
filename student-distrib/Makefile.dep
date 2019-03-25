@@ -6,7 +6,9 @@ idt.o: idt.c x86_desc.h types.h idt.h lib.h assembly_linkage.h i8259.h \
   keyboard.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   tests.h idt.h paging.h constants.h
-keyboard.o: keyboard.c keyboard.h x86_desc.h types.h idt.h lib.h i8259.h
+keyboard.o: keyboard.c keyboard.h types.h x86_desc.h idt.h lib.h i8259.h
 lib.o: lib.c lib.h types.h
 paging.o: paging.c paging.h constants.h types.h
-tests.o: tests.c tests.h x86_desc.h types.h lib.h
+rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
+  i8259.h
+tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h

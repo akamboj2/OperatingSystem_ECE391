@@ -180,14 +180,9 @@ void system_calls(){}
 * sends eoi to signify done with interrupt
 */
 void rtc_interrupt(){
-	//printf(" Call Me Maybe");
-	cli();
-	//test_interrupts(); //this is commented out as of mOnday morning
-  //credit to https://wiki.osdev.org/RTC
-	outb(REG_C, RTC_REG);
-	inb(RTC_RW);
-	sti();
-	send_eoi(8);
+  cli();
+  rtc_handler();
+  sti();
 }
 /*keyboard_interrupt
 * reads the character written by checking the keyboard port register (0x60)

@@ -21,15 +21,20 @@
 
 #define TAB 6
 
+#define KB_BUF_SIZE 129
+
+#define SHIFT_PRESSED1 0x2A
+ #define SHIFT_PRESSED2 0x36
+
 int shift_key = FALSE;
 int cap_flag = FALSE;
 int ctrl_key = FALSE;
 int keyboard_buffer_index = 0;
 
-unsigned char keyboard_buffer[129];
+unsigned char keyboard_buffer[KB_BUF_SIZE];
+unsigned char rw_buffer[KB_BUF_SIZE];
 
 void keyboard_handler(){
-  //char print_char;
 	char char_list[53] = {'\0','1','2','3','4','5','6','7',
 						'8','9','0','-','=','\0','\t','q','w',
 						'e','r','t','y','u','i','o','p','[',']',
@@ -111,11 +116,15 @@ void keyboard_handler(){
     }
 	}
 
+	if(c == 0x1C){
+		int n = terminal_read(0,rw_buffer,129);
+		terminal_write(0,rw_buffer,n);
+	}
 
 	send_eoi(1);
 }
 
-int terminal_open(){
+int32_t terminal_open(const uint8_t* filename){
   shift_key = FALSE;
   cap_flag = FALSE;
   ctrl_key = FALSE;
@@ -123,7 +132,7 @@ int terminal_open(){
   return 0;
 }
 
-int terminal_close(){
+int32_t terminal_close(int32_t fd){
   shift_key = FALSE;
   cap_flag = FALSE;
   ctrl_key = FALSE;
@@ -131,8 +140,8 @@ int terminal_close(){
   return 0;
 }
 
-int terminal_read(unsigned char * buf){
-  int index = 0;
+int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
+	int index = 0;
   while (keyboard_buffer[index] != '\0') {
       buf[index] = keyboard_buffer[index];
       index++;
@@ -140,7 +149,9 @@ int terminal_read(unsigned char * buf){
   return index;
 }
 
-int terminal_write(unsigned char * buf){
-  return puts(buf);
+int32_t terminal_write(int32_t fd, unsigned char* buf, int32_t nbytes){
+	if(nbytes == 0 || buf[0] == '\0')
+		return -1;
+  return printf(buf);
   //RETURN -1?
 }

@@ -184,10 +184,11 @@ void entry(unsigned long magic, unsigned long addr) {
 	char prev = inb(RTC_RW);
 	outb(REG_B, RTC_REG);
 	outb(prev|0x40, RTC_RW);
-	outb(REG_A, RTC_REG);
+	/*outb(REG_A, RTC_REG);
 	prev = inb(RTC_RW);
 	outb(REG_A, RTC_REG);
-	outb(RATE_RTC | (prev&0xf0), RTC_RW);
+	outb(RATE_RTC | (prev&0xf0), RTC_RW);*/
+  rtc_open();
 	enable_irq(8);                               //initialize the rtc irq line
 	sti();
 	//rate = 6;

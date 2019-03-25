@@ -25,7 +25,7 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry){
         if (!strncmp(dentry_loop->file_name,(int8_t*)fname, file_name_size)){//
             //*dentry=*dentry_loop;
             memcpy(dentry,dentry_loop,64);
-            dentry->file_name[31]='\0';
+            //dentry->file_name[31]='\0';
             return 0;//success! dentry should alrady be pointing at correct thing
         }
         dentry_loop++;
@@ -54,7 +54,7 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
     dentry_loop+=index; //i think index is including first 64 bytes of info otherwise change this to dentry+=index+1 if not
     //*dentry=*dentry_loop;
     memcpy(dentry,dentry_loop,64);//only copy 31 bytes for 32 char file name
-    dentry->file_name[31]='\0';
+    //dentry->file_name[31]='\0';
     return 0;
 
 }

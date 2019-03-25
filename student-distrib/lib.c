@@ -80,6 +80,35 @@ void update_cursor(int x, int y){
 	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
 }
 
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+void print_withoutnull(int8_t *buffer, int nbytes){
+  int8_t temp_buf[nbytes+1];
+  int i;
+  for(i = 0; i < nbytes; i++){
+    temp_buf[i] = buffer[i];
+  }
+  temp_buf[nbytes] = '\0';
+  puts(temp_buf);
+}
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+int32_t putfile(int8_t* s) {
+    char eof=26;
+    register int32_t index = 0;
+    while (s[index] != eof) {
+        if(s[index] != '\0')
+          putc(s[index]);
+        index++;
+    }
+    return index;
+}
+
 
 /* Standard printf().
  * Only supports the following format strings:

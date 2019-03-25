@@ -117,30 +117,26 @@ void readDir_test(){
 	dentry_t* testind=&test;
 	int* num_entries=(int*)filesys_addr;
 	int amt_dentrys=*num_entries;
-	int i,j;
+	int i;
 	//printf("File list:\n");
 	for(i=0; i<amt_dentrys; i++){
 		read_dentry_by_index(i,testind);
 
-	 	printf("file %d: %s, type: %d, inode: %d,\n",i, testind->file_name,testind->file_type,testind->inode_num);
+	 	printf("file %d: ",i);
+		print_withoutnull(testind->file_name, 32);
+		printf(" type: %d, inode: %d,\n",testind->file_type,testind->inode_num);
 	}
 }
 
-void readFile_test(){
-	dentry_t* dentry;
-	dentry = (dentry_t*) filesys_addr;
-	dentry++;
-//	printf("file: %s\n",dentry->file_name);
-	dentry++;
-//	printf("next file: %s\n",dentry->file_name);
+void read_text(){
+	set_cursors(0,0);
 
 	dentry_t* testd;
 	dentry_t test;
 	testd=&test;
-	read_dentry_by_name("sigtest",testd);
+	read_dentry_by_name("",testd);
 //	printf("test is %s \n",testd->file_name);
 	//printf("testing read_dentry_by_name: %d",testd== )
-
 
 	uint8_t buf[CONTENT_BUFFER+1];
 
@@ -148,7 +144,26 @@ void readFile_test(){
 	//file_open("frame0.txt");
 	file_read(0,buf,CONTENT_BUFFER);
 	file_close(0);
-	printf("File Content:\n %s",buf);
+	printf(buf);
+
+}
+
+void read_exec(){
+	set_cursors(0,0);
+
+	dentry_t* testd;
+	dentry_t test;
+	testd=&test;
+	read_dentry_by_name("",testd);
+//	printf("test is %s \n",testd->file_name);
+	//printf("testing read_dentry_by_name: %d",testd== )
+
+	uint8_t buf[CONTENT_BUFFER+1];
+
+	file_open("fish");
+	file_read(0,buf,CONTENT_BUFFER);
+	file_close(0);
+	putfile(buf);
 
 }
 
@@ -164,5 +179,6 @@ void launch_tests(){
 	//paging_test();
 	//rtc_test();
 	//readDir_test();
-	readFile_test();
+	read_text();
+	//read_exec();
 }

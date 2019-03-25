@@ -1,5 +1,6 @@
 #define ASM     1
 .globl keyboard_assembly
+.globl rtc_assembly
 
 keyboard_assembly:
 pushl %es

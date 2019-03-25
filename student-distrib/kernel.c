@@ -10,6 +10,9 @@
 #include "tests.h"
 #include "idt.h"
 #include "paging.h"
+#include "keyboard.h"
+#include "rtc.h"
+#include "filesys.h"
 
 #define RUN_TESTS
 
@@ -23,6 +26,9 @@
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
+
+int32_t filesys_addr;
+
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -63,6 +69,7 @@ void entry(unsigned long magic, unsigned long addr) {
         module_t* mod = (module_t*)mbi->mods_addr;
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
+            filesys_addr= (unsigned int)mod->mod_start;  //SAVE FILE SYSTEM ADDRESS!
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
             printf("First few bytes of module:\n");
             for (i = 0; i < 16; i++) {
@@ -170,6 +177,8 @@ void entry(unsigned long magic, unsigned long addr) {
     //printf("Enabling Interrupts\n");
     sti();
     clear();
+    set_cursors(0,0);
+    update_cursor(0,0);
 
 	cli();
 	//enable_irq(8);
@@ -177,15 +186,17 @@ void entry(unsigned long magic, unsigned long addr) {
 	//outb(0x20, 0x71);
 
   //credit to https://wiki.osdev.org/RTC
-  //enables the RTC and sets the rate 
+  //enables the RTC and sets the rate
 	outb(REG_B, RTC_REG);
 	char prev = inb(RTC_RW);
 	outb(REG_B, RTC_REG);
 	outb(prev|0x40, RTC_RW);
-	outb(REG_A, RTC_REG);
+	/*outb(REG_A, RTC_REG);
 	prev = inb(RTC_RW);
 	outb(REG_A, RTC_REG);
-	outb(RATE_RTC | (prev&0xf0), RTC_RW);
+	outb(RATE_RTC | (prev&0xf0), RTC_RW);*/
+  rtc_open();
+  //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
 	sti();
 	//rate = 6;

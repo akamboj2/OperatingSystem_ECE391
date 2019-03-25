@@ -15,6 +15,15 @@ int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
 
+//used created functions
+void scroll(void);
+int get_screenx();
+int get_screeny();
+void set_cursors(int pos_x, int pos_y);
+void update_cursor(int x, int y);
+
+
+
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
 void* memset_dword(void* s, int32_t c, uint32_t n);

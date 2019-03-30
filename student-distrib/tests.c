@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "rtc.h"
 #include "filesys.h"
+#include "assembly_linkage.h"
 
 
 #define PASS 1
@@ -197,7 +198,8 @@ void read_exec(){
 void sys_call_jmptbl_test(){
 	printf("Calling system_calls_assembly\n");
 	asm volatile("MOVL $1,%eax"); //1 calls halt
-	system_calls_assembly();
+	asm volatile("int $0x80");
+	//system_calls_assembly();
 }
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -208,8 +210,8 @@ void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
 //	rtc_test();
-	readDir_test();
+	//readDir_test();
 	//read_text();
 	//read_exec();
-		//sys_call_jmptbl_test();
+		sys_call_jmptbl_test();
 }

@@ -9,7 +9,7 @@
  * Side Effects: none
  */
 int32_t halt (uint8_t status){
-  //printf("IN HALT!\n");
+  printf("IN HALT!\n");
   return 0;
 }
 

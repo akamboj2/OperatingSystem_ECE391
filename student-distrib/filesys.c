@@ -125,41 +125,36 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
 
 /*
- * read
+ * file_read
  *   DESCRIPTION: reads count bytes of data from file into buf. Uses read_data.
  *                maybe uses read_dentry_by index (index is not inode number but
  *                bootblock idx).
  *                In the case of a file, data should be read to the end of the file or the end of the buffer provided, whichever occurs
                   sooner.
-                  In the case of reads to the directory, only the filename should be provided (as much as fits, or all 32 bytes), and
-                  subsequent reads should read from successive directory entries until the last is reached, at which point read should
-                  repeatedly return 0.
- *   INPUTS: count (bytes of data)
- *   OUTPUTS: buf(where to write data)
+ *   INPUTS: count -- bytes of data to read
+ *   OUTPUTS: buf -- where to write data
  *   RETURN VALUE: -1 on failure, 0 on end of file, else number of bytes read and placed into buffer
  *   SIDE EFFECTS: none
  */
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
-    //if dir_entry has not been  read before then read it by file name
      dentry_t* dentry_test;
     // read_dentry_by_name("frame0.txt",dentry_test);
 
     if(read_dentry_by_name(FILE_NAME,dentry_test)){
         return -1; //if reading fails return fail
     }
-    if ((int)dir_entry>=filesys_addr+NUM_INODES*64){ //each directory entry is 64 bytes and there are NUM_inodes of them
+
+    if ((int)dentry_test>=filesys_addr+NUM_INODES*64){ //each directory entry is 64 bytes and there are NUM_inodes of them
          return 0; //this means it is out of the bootblock
     }
 
     //now read the file
-    //return 0;
     return read_data(dentry_test->inode_num,0,buf, nbytes);
     //return read_data(38,0,&buf,1000);
-    //dir_entry++; //move to dir entry if done (should increment by 64 bytes)
 }
 
 /*
- * write
+ * file_write
  *   DESCRIPTION: Does nothing because this is read only system
  *   INPUTS: none
  *   OUTPUTS: none
@@ -172,7 +167,7 @@ int file_write (int32_t fd, const void* buf, int32_t nbytes){
 
 
 /*
- * open
+ * file_open
  *   DESCRIPTION: Initialize and temporary structures and opens a
  *                file directory (note file types). Uses read_dentry_by_name
  *   INPUTS: none
@@ -190,7 +185,7 @@ int file_open (const uint8_t* filename){
 
 
 /*
- * close
+ * file_close
  *   DESCRIPTION: Undoes what you did in open or "Does nothing"--Discussion slides
  *   INPUTS: none
  *   OUTPUTS: none
@@ -200,6 +195,81 @@ int file_open (const uint8_t* filename){
 int file_close (int32_t fd){
     return 0;
 }
+
+
+/*
+ * file_read
+ *   DESCRIPTION: reads count bytes of data from file into buf. Uses
+                  read_dentry_by index (index is not inode number but bootblock idx).
+                  In the case of reads to the directory, only the filename should be provided (as much as fits, or all 32 bytes), and
+                  subsequent reads should read from successive directory entries until the last is reached, at which point read should
+                  repeatedly return 0.
+ *   INPUTS: count -- bytes of data to read
+ *   OUTPUTS: buf -- where to write data
+ *   RETURN VALUE: -1 on failure, 0 on end of file, else number of bytes read and placed into buffer
+ *   SIDE EFFECTS: none
+ */
+int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
+     dentry_t* dentry_test;
+    // read_dentry_by_name("frame0.txt",dentry_test);
+
+    if(read_dentry_by_name(FILE_NAME,dentry_test)){
+        return -1; //if reading fails return fail
+    }
+    if ((int)dir_entry>=filesys_addr+NUM_INODES*64){ //each directory entry is 64 bytes and there are NUM_inodes of them
+         return 0; //this means it is out of the bootblock
+    }
+
+    //now read the file
+    return read_data(dentry_test->inode_num,0,buf, nbytes);
+    //return read_data(38,0,&buf,1000);
+    //dir_entry++; //move to dir entry if done (should increment by 64 bytes)
+}
+
+/*
+ * dir_write
+ *   DESCRIPTION: Does nothing because this is read only system
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: -1
+ *   SIDE EFFECTS: none
+ */
+int dir_write (int32_t fd, const void* buf, int32_t nbytes){
+    return -1;
+}
+
+
+/*
+ * dir_open
+ *   DESCRIPTION: Initialize and temporary structures and opens a
+ *                file directory (note file types). Uses read_dentry_by_name
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ *   SIDE EFFECTS: can only have one file open at a time
+ */
+int dir_open (const uint8_t* filename){
+    memcpy(FILE_NAME,filename,32);
+    FILE_NAME[32]='\0';
+    dir_entry=NULL; //indicates no reads yet //also crashes it
+    return 0;
+}
+
+
+
+/*
+ * dir_close
+ *   DESCRIPTION: Undoes what you did in open or "Does nothing"--Discussion slides
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: 0
+ *   SIDE EFFECTS: none
+ */
+int dir_close (int32_t fd){
+    return 0;
+}
+
+
 
 
 //below is referring to first 3 functions

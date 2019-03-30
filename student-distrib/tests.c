@@ -113,7 +113,7 @@ void rtc_test(){
  *
  * Inputs: None
  * Outputs: reads and lists the directories
- * Side Effects: 
+ * Side Effects:
  */
 void readDir_test(){
 	set_cursors(0,0);
@@ -191,6 +191,20 @@ void read_exec(){
 
 
 /* Checkpoint 3 tests */
+
+/*sys_call_jmptbl_test
+ *	very basic test just to test that system call jump table is working
+ * Inputs: None
+ * Outputs: none
+ * Side Effects: generates "general protection fault" after calling and returning
+ 								from system call. I think it's bc we're not actually an interrupt
+								 so hopefully for actual user lvl system calls
+ */
+void sys_call_jmptbl_test(){
+	printf("Calling system_calls_assembly\n");
+	asm volatile("MOVL $1,%eax"); //1 calls halt
+	system_calls_assembly();
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -203,4 +217,5 @@ void launch_tests(){
 	//readDir_test();
 	//read_text();
 	//read_exec();
+		sys_call_jmptbl_test();
 }

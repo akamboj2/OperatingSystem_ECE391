@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "types.h"
 
+//pageTable struct
 struct pageTable {
     int address[20];    //physical address of 4K aligned page table
     int avail[3];       //free to use
@@ -18,6 +19,7 @@ struct pageTable {
     int present;        //1 for valid PDE
 };
 
+//struct for the page directory
 struct pageDirectory {
     int address[20];    //physical address of 4K aligned page table
     int avail[3];       //free to use

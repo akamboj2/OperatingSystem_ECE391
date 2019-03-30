@@ -1,6 +1,7 @@
 #define ASM     1
 .globl keyboard_assembly
 .globl rtc_assembly
+.globl system_calls_assembly
 
 keyboard_assembly:
 pushl %es
@@ -52,3 +53,46 @@ popl %ds
 popl %es
 
 iret
+
+
+system_calls_assembly:
+pushl %es
+pushl %ds
+pushl %edi
+pushl %esi
+pushl %ebp
+pushl %edx
+pushl %ecx
+pushl %ebx
+
+cmpl $1,%eax
+jl invalid_sys_call
+cmpl $10,%eax
+jg invalid_sys_call
+
+call sys_call_table(,%eax,4) #multiply by 4 bc each address is 4 bytes
+
+invalid_sys_call:
+popl %ebx
+popl %ecx
+popl %edx
+popl %ebp
+popl %esi
+popl %edi
+popl %ds
+popl %es
+
+iret
+
+sys_call_table:
+  #.long 0 #sys_calls are from 1-10 so need to exclude zero?
+.long halt
+.long execute
+.long read
+.long write
+.long open
+.long close
+.long getargs
+.long vidmap
+.long set_handler
+.long sigreturn

@@ -109,11 +109,11 @@ void rtc_test(){
 		}
 }
 
-/*RTC Test
+/*directory read test
  *
  * Inputs: None
- * Outputs: writes to video memory and clears
- * Side Effects: clears prior state of video memory
+ * Outputs: reads and lists the directories
+ * Side Effects: 
  */
 void readDir_test(){
 	set_cursors(0,0);
@@ -138,11 +138,11 @@ void readDir_test(){
 	}
 }
 
-/*RTC Test
+/*File Read Test --long text
  *
  * Inputs: None
- * Outputs: writes to video memory and clears
- * Side Effects: clears prior state of video memory
+ * Outputs: reads from a file
+ * Side Effects:
  */
 void read_text(){
 	set_cursors(0,0);
@@ -164,11 +164,11 @@ void read_text(){
 
 }
 
-/*RTC Test
+/*File Read Test
  *
  * Inputs: None
- * Outputs: writes to video memory and clears
- * Side Effects: clears prior state of video memory
+ * Outputs: reads conent from a a file
+ * Side Effects:
  */
 void read_exec(){
 	set_cursors(0,0);
@@ -199,7 +199,7 @@ void read_exec(){
 void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
-	rtc_test();
+//	rtc_test();
 	//readDir_test();
 	//read_text();
 	//read_exec();

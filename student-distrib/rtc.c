@@ -21,7 +21,7 @@ volatile int nio_flag = 0;
  * SIDE EFFECTS: sends eoi signal to PIC and prints for test purposes
  */
 void rtc_handler(){
-  printf(" 1");
+  //printf(" 1");
   cli();
 
   outb(REG_C, RTC_REG);

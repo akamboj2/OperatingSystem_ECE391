@@ -117,24 +117,18 @@ void rtc_test(){
  */
 void readDir_test(){
 	set_cursors(0,0);
-	dentry_t* testd;
-	dentry_t test;
-	testd=&test;
-	read_dentry_by_name((uint8_t*)"sigtest",testd);
-//	printf("test is %s \n",testd->file_name);
-	//printf("testing read_dentry_by_name: %d",testd== )
 
-	dentry_t* testind=&test;
+	dentry_t testind;
 	int* num_entries=(int*)filesys_addr;
 	int amt_dentrys=*num_entries;
 	int i;
 	//printf("File list:\n");
 	for(i=0; i<amt_dentrys; i++){
-		read_dentry_by_index(i,testind);
+		read_dentry_by_index(i,&testind);
 
 	 	printf("file %d: ",i);
-		print_withoutnull(testind->file_name, 32);
-		printf(" type: %d, inode: %d \n",testind->file_type,testind->inode_num);
+		print_withoutnull(testind.file_name, 32);
+		printf(" type: %d, inode: %d \n",testind.file_type,testind.inode_num);
 	}
 }
 
@@ -214,8 +208,8 @@ void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
 //	rtc_test();
-	//readDir_test();
+	readDir_test();
 	//read_text();
 	//read_exec();
-		sys_call_jmptbl_test();
+		//sys_call_jmptbl_test();
 }

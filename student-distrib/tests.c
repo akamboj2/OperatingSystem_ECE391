@@ -1,6 +1,7 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "keyboard.h"
 #include "rtc.h"
 #include "filesys.h"
 #include "assembly_linkage.h"
@@ -90,6 +91,21 @@ int paging_test(){
 // add more tests here
 
 /* Checkpoint 2 tests */
+
+/*Terminal Write Test
+ *
+ * Inputs: None
+ * Outputs:
+ * Side Effects:
+ */
+void terminalwrite_test(){
+	uint8_t* nullbuf;
+	terminal_write(0, nullbuf, 0);
+	terminal_write(0, (uint8_t*)"_abcde\n", 0);
+	terminal_write(0, (uint8_t*)"_abcde\n", 4);
+	terminal_write(0, (uint8_t*)"_abcde\n", 7);
+	terminal_write(0, (uint8_t*)"_abcde\n", 8);
+}
 
 /*RTC Test
  *
@@ -209,9 +225,10 @@ void sys_call_jmptbl_test(){
 void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
-//	rtc_test();
+	//terminalwrite_test();
+  //rtc_test();
 	//readDir_test();
 	//read_text();
 	//read_exec();
-		sys_call_jmptbl_test();
+	sys_call_jmptbl_test();
 }

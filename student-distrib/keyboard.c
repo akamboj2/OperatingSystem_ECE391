@@ -21,7 +21,7 @@
 #define TAB 6
 
 //Special keypressed
-#define KB_BUF_SIZE 129
+#define KB_BUF_SIZE 128
 #define SHIFT_PRESSED1 0x2A
 #define SHIFT_PRESSED2 0x36
 #define SHIFT_RELEASED1 0xAA
@@ -88,7 +88,7 @@ void keyboard_handler(){
   }
 
   else if(c == SPACE){	//outputs space
-    if(keyboard_buffer_index < KB_BUF_SIZE-1){
+    if(keyboard_buffer_index < KB_BUF_SIZE){
       char print_char = ' ';
       keyboard_buffer[keyboard_buffer_index] = print_char;
       keyboard_buffer[keyboard_buffer_index + 1] = '\0';
@@ -136,7 +136,7 @@ void keyboard_handler(){
 		   print_char = char_list[c-1];
     else if(shift_key)
   		 print_char = upper_char_list[c-1];
-    if(keyboard_buffer_index < KB_BUF_SIZE-1 && print_char != '\0'){
+    if(keyboard_buffer_index < KB_BUF_SIZE && print_char != '\0'){
       keyboard_buffer[keyboard_buffer_index] = print_char;
       keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
@@ -176,7 +176,9 @@ int32_t terminal_close(int32_t fd){
  */
 int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
 	int index = 0;
-  while (keyboard_buffer[index] != '\0') {
+	if(nbytes < 0 || nbytes > KB_BUF_SIZE)
+		return -1;
+  while (index < nbytes) {
       buf[index] = keyboard_buffer[index];
       index++;
   }
@@ -192,7 +194,11 @@ int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
  * Side Effects: clears prior state of video memory
  */
 int32_t terminal_write(int32_t fd, unsigned char* buf, int32_t nbytes){
-	if(nbytes == 0 || buf[0] == '\0')
+	if(buf == NULL || nbytes < 0)
 		return -1;
-  return printf((int8_t*)buf);
+	if(nbytes == 0)
+		return 0;
+	//if(nbytes < 0 || nbytes >= sizeof(buf)) //less than or equal to account for length the null char adds
+		//return -1;
+	return print_withoutnull((int8_t*)buf, nbytes);
 }

@@ -84,14 +84,14 @@ void update_cursor(int x, int y){
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
  *    Function: Output a string to the console */
-void print_withoutnull(int8_t *buffer, int nbytes){
+int32_t print_withoutnull(int8_t *buffer, int nbytes){
   int8_t temp_buf[nbytes+1];
   int i;
   for(i = 0; i < nbytes; i++){
     temp_buf[i] = buffer[i];
   }
   temp_buf[nbytes] = '\0';
-  puts(temp_buf);
+  return puts(temp_buf);
 }
 
 /* int32_t puts(int8_t* s);

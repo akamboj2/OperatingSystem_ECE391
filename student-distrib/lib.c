@@ -24,6 +24,92 @@ void clear(void) {
     }
 }
 
+/* void scroll(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Moves video memory up one row and clears bottom row */
+void scroll(void) {
+    int32_t i;
+    for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1));
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+    for (i = (NUM_ROWS-1) * NUM_COLS; i < (NUM_ROWS) * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+/* int get_screenx();
+ * Inputs: none
+ * Return Value: x-position of where to write in video memory
+ * Function: Clears video memory */
+int get_screenx(){
+  return screen_x;
+}
+
+/* int get_screeny();
+ * Inputs: none
+ * Return Value: y-position of where to write in video memory
+ * Function: Clears video memory */
+int get_screeny(){
+  return screen_y;
+}
+
+/* void set_cursors(int pos_x, int pos_y)
+ * Inputs: x and y postitions to set cursor to
+ * Return Value: none
+ * Function: changes cursor positon */
+void set_cursors(int pos_x, int pos_y){
+  screen_x = pos_x;
+  screen_y = pos_y;
+}
+
+
+//credit to https://wiki.osdev.org/Text_Mode_Cursor
+/* void update_cursor(int x, int y)
+ * Inputs: x and y coordinates to set physical cursor to
+ * Return Value: none
+ * Function: Modifies position of text to video memory cursor */
+void update_cursor(int x, int y){
+	uint16_t pos = (y * NUM_COLS) + x;
+
+	outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+	outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+int32_t print_withoutnull(int8_t *buffer, int nbytes){
+  int8_t temp_buf[nbytes+1];
+  int i;
+  for(i = 0; i < nbytes; i++){
+    temp_buf[i] = buffer[i];
+  }
+  temp_buf[nbytes] = '\0';
+  return puts(temp_buf);
+}
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+int32_t putfile(int8_t* s) {
+    char eof=26;
+    register int32_t index = 0;
+    while (s[index] != eof) {
+        if(s[index] != '\0')
+          putc(s[index]);
+        index++;
+    }
+    return index;
+}
+
+
 /* Standard printf().
  * Only supports the following format strings:
  * %%  - print a literal '%' character
@@ -175,10 +261,20 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+<<<<<<< HEAD
 
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+=======
+        screen_y = (screen_y + (screen_x / NUM_COLS));
+>>>>>>> ee2059325ae81d0b3fc2a1340b68a7906621c4aa
         screen_x %= NUM_COLS;
     }
+    if(screen_y >= NUM_ROWS){
+      scroll();
+      screen_y--;
+      screen_x = 0;
+    }
+    update_cursor(screen_x, screen_y);
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);

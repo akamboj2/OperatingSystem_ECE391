@@ -84,14 +84,14 @@ void update_cursor(int x, int y){
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
  *    Function: Output a string to the console */
-void print_withoutnull(int8_t *buffer, int nbytes){
+int32_t print_withoutnull(int8_t *buffer, int nbytes){
   int8_t temp_buf[nbytes+1];
   int i;
   for(i = 0; i < nbytes; i++){
     temp_buf[i] = buffer[i];
   }
   temp_buf[nbytes] = '\0';
-  puts(temp_buf);
+  return puts(temp_buf);
 }
 
 /* int32_t puts(int8_t* s);
@@ -261,7 +261,12 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+<<<<<<< HEAD
+
+        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+=======
         screen_y = (screen_y + (screen_x / NUM_COLS));
+>>>>>>> ee2059325ae81d0b3fc2a1340b68a7906621c4aa
         screen_x %= NUM_COLS;
     }
     if(screen_y >= NUM_ROWS){

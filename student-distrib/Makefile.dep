@@ -4,7 +4,7 @@ x86_desc.o: x86_desc.S x86_desc.h types.h
 filesys.o: filesys.c filesys.h types.h lib.h
 i8259.o: i8259.c i8259.h types.h lib.h
 idt.o: idt.c x86_desc.h types.h idt.h lib.h assembly_linkage.h \
-  sys_calls.h i8259.h keyboard.h rtc.h
+  sys_calls.h filesys.h rtc.h i8259.h keyboard.h
 kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   tests.h idt.h paging.h constants.h keyboard.h rtc.h filesys.h
 keyboard.o: keyboard.c keyboard.h types.h x86_desc.h idt.h lib.h i8259.h
@@ -14,7 +14,14 @@ paging.o: paging.c paging.h constants.h types.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h
 =======
 rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
+<<<<<<< HEAD
   sys_calls.h i8259.h
 sys_calls.o: sys_calls.c sys_calls.h types.h lib.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h filesys.h
 >>>>>>> master
+=======
+  sys_calls.h filesys.h i8259.h
+sys_calls.o: sys_calls.c sys_calls.h types.h filesys.h rtc.h lib.h
+tests.o: tests.c tests.h x86_desc.h types.h lib.h keyboard.h rtc.h \
+  filesys.h assembly_linkage.h sys_calls.h idt.h
+>>>>>>> akamboj2

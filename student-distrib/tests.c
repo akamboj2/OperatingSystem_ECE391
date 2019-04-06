@@ -1,9 +1,11 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "keyboard.h"
 #include "rtc.h"
 #include "filesys.h"
-
+#include "assembly_linkage.h"
+#include "sys_calls.h"
 
 #define PASS 1
 #define FAIL 0
@@ -106,6 +108,21 @@ int paging_test(){
 }
 /* Checkpoint 2 tests */
 
+/*Terminal Write Test
+ *
+ * Inputs: None
+ * Outputs:
+ * Side Effects:
+ */
+void terminalwrite_test(){
+	uint8_t* nullbuf;
+	terminal_write(0, nullbuf, 0);
+	terminal_write(0, (uint8_t*)"_abcde\n", 0);
+	terminal_write(0, (uint8_t*)"_abcde\n", 4);
+	terminal_write(0, (uint8_t*)"_abcde\n", 7);
+	terminal_write(0, (uint8_t*)"_abcde\n", 8);
+}
+
 /*RTC Test
  *
  * Inputs: None
@@ -129,28 +146,22 @@ void rtc_test(){
  *
  * Inputs: None
  * Outputs: reads and lists the directories
- * Side Effects: 
+ * Side Effects:
  */
 void readDir_test(){
 	set_cursors(0,0);
-	dentry_t* testd;
-	dentry_t test;
-	testd=&test;
-	read_dentry_by_name((uint8_t*)"sigtest",testd);
-//	printf("test is %s \n",testd->file_name);
-	//printf("testing read_dentry_by_name: %d",testd== )
 
-	dentry_t* testind=&test;
+	dentry_t testind;
 	int* num_entries=(int*)filesys_addr;
 	int amt_dentrys=*num_entries;
 	int i;
 	//printf("File list:\n");
 	for(i=0; i<amt_dentrys; i++){
-		read_dentry_by_index(i,testind);
+		read_dentry_by_index(i,&testind);
 
 	 	printf("file %d: ",i);
-		print_withoutnull(testind->file_name, 32);
-		printf(" type: %d, inode: %d \n",testind->file_type,testind->inode_num);
+		print_withoutnull(testind.file_name, 32);
+		printf(" type: %d, inode: %d \n",testind.file_type,testind.inode_num);
 	}
 }
 
@@ -207,6 +218,52 @@ void read_exec(){
 
 
 /* Checkpoint 3 tests */
+
+/*sys_call_jmptbl_test
+ *	very basic test just to test that system call jump table is working
+ * Inputs: None
+ * Outputs: none
+ * Side Effects: generates "general protection fault" after calling and returning
+ 								from system call. I think it's bc we're not actually an interrupt
+								 so hopefully for actual user lvl system calls
+								 fixed by changing to ret instead of iret
+ */
+void sys_call_jmptbl_test(){
+	printf("Calling system_calls_assembly\n");
+	asm volatile("MOVL $1,%eax"); //1 calls halt
+	asm volatile("int $0x80");
+	//system_calls_assembly();
+}
+
+/*open_test
+ *	calls open in sys_calls.c just to check if it add files to file_array and stuff correctly
+ * Inputs: None
+ * Outputs: none
+ * Side Effects:
+ */
+void open_test(){
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	open(fname);
+	open("ls");
+	open("counter");
+	open("fish");
+	open(".");
+	open("cat");
+	open("pingpong");
+	open("sigtest");
+	printf("SHOULD BE failure: %d\n",open("testprint"));
+	printf("After opening here is what is in file array\n");
+	int i =0;
+	for(i=0;i<8;i++){//this just prints everything in file array
+		printf("at fd:%d flags=%d",i,file_array[i].flags);
+		if (file_array[i].flags){
+			printf(" File type: %d\n",file_array[i].flags & -2);
+			file_array[i].fops_table->(0,NULL,0);//close(i);
+		}
+	}
+	printf("end of loop in open_test\n");
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -215,8 +272,11 @@ void read_exec(){
 void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
-//	rtc_test();
+	//terminalwrite_test();
+  //rtc_test();
 	//readDir_test();
 	//read_text();
 	//read_exec();
+	//sys_call_jmptbl_test();
+	open_test();
 }

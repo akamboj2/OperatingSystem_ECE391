@@ -56,6 +56,7 @@ iret
 
 
 system_calls_assembly:
+cli
 pushl %es
 pushl %ds
 pushl %edi
@@ -70,7 +71,7 @@ jl invalid_sys_call
 cmpl $10,%eax
 jg invalid_sys_call
 
-call sys_call_table(,%eax,4) #multiply by 4 bc each address is 4 bytes
+call *sys_call_table(,%eax,4) #multiply by 4 bc each address is 4 bytes
 
 invalid_sys_call:
 popl %ebx
@@ -81,11 +82,11 @@ popl %esi
 popl %edi
 popl %ds
 popl %es
-
+sti       #not sure if this is needed
 iret
 
 sys_call_table:
-  #.long 0 #sys_calls are from 1-10 so need to exclude zero?
+.long 0 #sys_calls are from 1-10 so need to exclude zero?
 .long halt
 .long execute
 .long read

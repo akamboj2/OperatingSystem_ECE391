@@ -10,11 +10,14 @@
 #include "tests.h"
 #include "idt.h"
 #include "paging.h"
+<<<<<<< HEAD
+=======
 #include "keyboard.h"
 #include "rtc.h"
+>>>>>>> ee2059325ae81d0b3fc2a1340b68a7906621c4aa
 #include "filesys.h"
 
-#define RUN_TESTS
+#define RUN_TESTS 1
 
 #define REG_A 0x8A
 #define REG_B 0x8B
@@ -29,7 +32,10 @@
 
 int32_t filesys_addr;
 
+<<<<<<< HEAD
+=======
 
+>>>>>>> ee2059325ae81d0b3fc2a1340b68a7906621c4aa
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
@@ -189,8 +195,12 @@ void entry(unsigned long magic, unsigned long addr) {
 
   //credit to https://wiki.osdev.org/RTC
   //enables the RTC and sets the rate
+<<<<<<< HEAD
+/*	char prev = inb(RTC_RW);
+=======
 	outb(REG_B, RTC_REG);
 	char prev = inb(RTC_RW);
+>>>>>>> ee2059325ae81d0b3fc2a1340b68a7906621c4aa
 	outb(REG_B, RTC_REG);
 	outb(prev|0x40, RTC_RW);
 	/*outb(REG_A, RTC_REG);
@@ -200,7 +210,8 @@ void entry(unsigned long magic, unsigned long addr) {
   rtc_open();
   //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
-	sti();
+*/
+  sti();
 	//rate = 6;
 	//outb(0x8A, 0x70);
 	//char prev1 = inb(0x71);

@@ -2,6 +2,10 @@
 #include "types.h"
 #include "lib.h"
 
+static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
+static ftable dir_table = {&dir_read, &dir_write, &dir_open, &dir_close};
+static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
+
 /*halt
  * Description: None
  * Inputs: None
@@ -15,7 +19,7 @@ int32_t halt (uint8_t status){
 
 /*execute
  * Description: Initialize file_array to have all flags=0 (indicate not present), and set fd=0 to std out
-  and fd=1 to stdin
+  and fd=1 to stdin, ---AND INITIALIZEW FILE_ARR_SIZE TO 2!
  * Inputs: None
  * Outputs/Return Values: Returns 0 on succes, -1 on failure
  * Side Effects: none
@@ -56,10 +60,11 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes){
  */
 int32_t open (const uint8_t* filename){
   dentry_t entry;
+  //printf("file_arr_size: %d\n",file_arr_size);
   if(read_dentry_by_name(filename, &entry) || file_arr_size>=MAX_OPEN_FILES){ //find dentry and return -1 if it fails
     return -1;
   }
-
+  //printf("in open\n");
   //now find empty entry in file_array
   int fd =0; //this is loop counter and also holds empty index in file_array
   for(fd=0;fd<MAX_OPEN_FILES;fd++){
@@ -68,7 +73,7 @@ int32_t open (const uint8_t* filename){
       break;
     }
   }//at the end of this i should be index of empty entry
-
+//  printf("Found empty file of type:%d\n",entry.file_type);
   //determine file type
   //File types are 0 for...(RTC), 1 for the directory, and 2 for a regular file --from docs
   switch(entry.file_type){
@@ -90,18 +95,31 @@ int32_t open (const uint8_t* filename){
   }
   file_array[fd].f_pos=0; //file position should start at beginning for all file types
   file_arr_size+=1;
+  printf("Now set fd: %d to flags: %d\n",fd,file_array[fd].flags);
 
   //finally return fd
-  return 0;
+  return fd;
 }
 
 /*close
- * Description: None
- * Inputs: None
+ * Description: close a file by setting it's flags to zero--means not not present
+              then open should overwrite the rest of the stuff in the fd_struct when Opening
+              next file
+ * Inputs: fd- file descriptor of file to close
  * Outputs/Return Values: Returns 0 on succes, -1 on failure
- * Side Effects: none
+              failure: trying to open fd=0,1 (which is stdin/stdout)
+ * Side Effects: uses printf for error message if invalid fd
  */
 int32_t close (int32_t fd){
+//  printf("Call close with fd:%d\n",fd);
+  int invalid_fd_ind=2; //less than this is an invalid descriptor
+  if (fd<invalid_fd_ind || fd>=MAX_OPEN_FILES){
+    printf("fd=%d is invalid file_array index to open\n",fd);
+    return -1;
+  }
+  file_array[fd].flags=0;
+//  printf("    fd:%d,flags now:%d\n",fd,file_array[fd].flags);
+
   return 0;
 }
 

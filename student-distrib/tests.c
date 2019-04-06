@@ -5,7 +5,7 @@
 #include "rtc.h"
 #include "filesys.h"
 #include "assembly_linkage.h"
-
+#include "sys_calls.h"
 
 #define PASS 1
 #define FAIL 0
@@ -210,12 +210,36 @@ void read_exec(){
  * Side Effects: generates "general protection fault" after calling and returning
  								from system call. I think it's bc we're not actually an interrupt
 								 so hopefully for actual user lvl system calls
+								 fixed by changing to ret instead of iret
  */
 void sys_call_jmptbl_test(){
 	printf("Calling system_calls_assembly\n");
 	asm volatile("MOVL $1,%eax"); //1 calls halt
 	asm volatile("int $0x80");
 	//system_calls_assembly();
+}
+
+/*open_test
+ *	calls open in sys_calls.c just to check if it add files to file_array and stuff correctly
+ * Inputs: None
+ * Outputs: none
+ * Side Effects:
+ */
+void open_test(){
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	open(fname);
+	//open("ls");
+	printf("After opening here is what is in file array\n");
+	int i =0;
+	for(i=0;i<8;i++){//this just prints everything in file array
+		printf("at fd:%d flags=%d\n",i,file_array[i].flags);
+		if (file_array[i].flags){
+			printf("\tFile name: %d",file_array[i].flags);
+			((file_array[i].fops_table)[0])(0,NULL,0);
+		}
+	}
+	printf("end of loop in open_test\n");
 }
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -230,5 +254,6 @@ void launch_tests(){
 	//readDir_test();
 	//read_text();
 	//read_exec();
-	sys_call_jmptbl_test();
+	//sys_call_jmptbl_test();
+	open_test();
 }

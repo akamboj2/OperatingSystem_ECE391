@@ -134,7 +134,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  *   RETURN VALUE: -1 on failure, 0 on end of file, else number of bytes read and placed into buffer
  *   SIDE EFFECTS: none
  */
-int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
+int32_t file_read (int32_t fd, void* buf, int32_t nbytes){\
+  printf("YOU ENTERED FILE READ YAY!\n");
      dentry_t* dentry_test;
     // read_dentry_by_name("frame0.txt",dentry_test);
 

@@ -7,5 +7,6 @@
 void keyboard_assembly();
 void rtc_assembly();
 void system_calls_assembly();
+void context_switch();
 #endif
 #endif

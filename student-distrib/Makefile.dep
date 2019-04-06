@@ -12,6 +12,7 @@ lib.o: lib.c lib.h types.h
 paging.o: paging.c paging.h constants.h types.h
 rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
   sys_calls.h i8259.h
-sys_calls.o: sys_calls.c sys_calls.h types.h lib.h
+sys_calls.o: sys_calls.c sys_calls.h types.h lib.h filesys.h \
+  assembly_linkage.h idt.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h keyboard.h rtc.h \
   filesys.h assembly_linkage.h sys_calls.h idt.h

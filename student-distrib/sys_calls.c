@@ -1,6 +1,8 @@
 #include "sys_calls.h"
 #include "types.h"
 #include "lib.h"
+#include "filesys.h"
+#include "assembly_linkage.h"
 
 /*halt
  * Description: None
@@ -21,6 +23,29 @@ int32_t halt (uint8_t status){
  */
 int32_t execute (const uint8_t* command){
 //  printf("In execute!\n");
+  if(command == NULL){
+    return -1;
+  }
+  uint8_t filename[32];
+  uint8_t data[32];
+
+  dentry_t *test;
+  //read_dentry_by_name((uint8_t*)"",test);
+
+  //memcpy(filename, command, 32);
+  file_open((uint8_t*)"ls");
+  if(file_read(0,data,32) == -1){
+      file_close(0);
+      return -1;
+  }
+  file_close(0);
+  if(data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
+    return -1;
+  //print_withoutnull((int8_t*)data, 4);
+  //printf("%s", filename);*/
+  printf("\nIn execute\n");
+  //asm volatile("iret");
+  //context_switch();
   return 0;
 }
 

@@ -105,7 +105,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     int count=0; //for how many bytes are copied
     char* at_db=data_block + (*inode_block+1)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
     char eof=26; //end of file character
-    while(*at_db != eof && count<=length){           //check if this is actually the end of file character
+    while(*at_db != eof && count<length){           //check if this is actually the end of file character
         //printf("%c",*at_db);
         *buf=*at_db; //do the copy
         buf++;
@@ -138,12 +138,8 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
      dentry_t* dentry_test;
     // read_dentry_by_name("frame0.txt",dentry_test);
 
-    if(read_dentry_by_name(FILE_NAME,dentry_test)){
+    if(read_dentry_by_name(FILE_NAME,dentry_test) == -1){
         return -1; //if reading fails return fail
-    }
-
-    if ((int)dentry_test>=filesys_addr+NUM_INODES*64){ //each directory entry is 64 bytes and there are NUM_inodes of them
-         return 0; //this means it is out of the bootblock
     }
 
     //now read the file

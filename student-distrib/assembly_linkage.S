@@ -2,6 +2,7 @@
 .globl keyboard_assembly
 .globl rtc_assembly
 .globl system_calls_assembly
+.globl context_switch
 
 keyboard_assembly:
 pushl %es
@@ -56,12 +57,12 @@ iret
 
 
 system_calls_assembly:
-cli
 pushl %es
 pushl %ds
 pushl %edi
 pushl %esi
 pushl %ebp
+
 pushl %edx
 pushl %ecx
 pushl %ebx
@@ -77,12 +78,22 @@ invalid_sys_call:
 popl %ebx
 popl %ecx
 popl %edx
+
 popl %ebp
 popl %esi
 popl %edi
 popl %ds
 popl %es
-sti       #not sure if this is needed
+iret
+
+context_switch:
+#push onto stack for IRET in sys call functions to remove
+#CURRENTLY CAUSING PAGE FAULT
+pushl %ds
+pushl %esp
+pushfl  #pushes eflags
+pushl %cs
+pushl %esp #pushes eip
 iret
 
 sys_call_table:

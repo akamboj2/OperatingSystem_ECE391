@@ -229,14 +229,21 @@ void open_test(){
 	uint8_t fname[20]="frame0.txt";
 	printf("Opening frame0.txt\n");
 	open(fname);
-	//open("ls");
+	open("ls");
+	open("counter");
+	open("fish");
+	open(".");
+	open("cat");
+	open("pingpong");
+	open("sigtest");
+	printf("SHOULD BE failure: %d\n",open("testprint"));
 	printf("After opening here is what is in file array\n");
 	int i =0;
 	for(i=0;i<8;i++){//this just prints everything in file array
-		printf("at fd:%d flags=%d\n",i,file_array[i].flags);
+		printf("at fd:%d flags=%d",i,file_array[i].flags);
 		if (file_array[i].flags){
-			printf("\tFile name: %d",file_array[i].flags);
-			((file_array[i].fops_table)[0])(0,NULL,0);
+			printf(" File type: %d\n",file_array[i].flags & -2);
+			file_array[i].fops_table->(0,NULL,0)//close(i);
 		}
 	}
 	printf("end of loop in open_test\n");

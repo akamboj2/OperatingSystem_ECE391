@@ -143,10 +143,6 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes){\
         return -1; //if reading fails return fail
     }
 
-    if ((int)dentry_test>=filesys_addr+NUM_INODES*64){ //each directory entry is 64 bytes and there are NUM_inodes of them
-         return 0; //this means it is out of the bootblock
-    }
-
     //now read the file
     return read_data(dentry_test->inode_num,0,buf, nbytes);
     //return read_data(38,0,&buf,1000);
@@ -268,6 +264,7 @@ int dir_open (const uint8_t* filename){
  *   SIDE EFFECTS: none
  */
 int dir_close (int32_t fd){
+  //printf("Enter dir_close!\n");
     return 0;
 }
 

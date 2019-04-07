@@ -193,9 +193,10 @@ void read_text(){
 
 	uint8_t buf[CONTENT_BUFFER+1];
 
-	file_open((uint8_t*)"verylargetextwithverylongname.tx");
+	open((uint8_t*)"verylargetextwithverylongname.tx");
 	//file_open("frame0.txt");
 	file_read(0,buf,CONTENT_BUFFER);
+	//read(0,buf,CONTENT_BUFFER);
 	file_close(0);
 	printf((int8_t*)buf);
 
@@ -305,8 +306,8 @@ void read_test() {
 	printf("Opening frame0.txt\n");
 	int fdesc = open(fname);
 	uint8_t buffer[32];
-	read(fdesc, buffer, 100);
-	printf("read file");
+	 read(fdesc, buffer, 100);
+	//printf("read file: %s\n",buffer);
 }
 
 void write_test() {
@@ -314,7 +315,7 @@ void write_test() {
 	printf("Opening frame0.txt\n");
 	int fdesc = open(fname);
 	uint8_t buffer[32];
-	write(fdesc, buffer, 100);
+	printf("trying to write: %d:",write(fdesc, buffer, 100));
 
 }
 
@@ -329,9 +330,10 @@ void launch_tests(){
 	//terminalwrite_test();
   //rtc_test();
 	//readDir_test();
-	//read_text();
+	read_text();
 	//read_exec();
 	//sys_call_jmptbl_test();
-	open_test();
+	//open_test();
 	//close_test();
+	//read_test();
 }

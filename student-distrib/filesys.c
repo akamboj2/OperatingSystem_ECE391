@@ -139,13 +139,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  */
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
   //firs some sanity checks
-  if (buf==NULL || nbytes<0){
+  //printf("in file_read: fd:%d,buf:%s,nbytes:%d",fd,buf,nbytes);
+  if (nbytes<0){
     return -1;
   }
   if (nbytes==0){
     return 0;
   }
-
+  //printf("reading file\n");
   //now read the file
   return read_data(file_array[fd].inode,file_array[fd].f_pos,buf, nbytes);
 }

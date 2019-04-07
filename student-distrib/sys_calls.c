@@ -38,11 +38,19 @@ int32_t execute (const uint8_t* command){
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
   if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
     return -1;
-
+  //printf("IN READ YAY!\n");
+  // int i =0;
+  // for(i=0;i<8;i++){//this just prints everything in file array
+  //   printf("at fd:%d flags=%d\n",i,file_array[i].flags);
+  //   if (file_array[i].flags){
+  //     printf(" File type: %d\n",file_array[i].flags & -2);
+  //     file_array[i].fops_table->read(0,NULL,0);//close(i);
+  //   }
+  // }
   int32_t position = file_array[fd].fops_table->read(fd, buf, nbytes);
-  if(position == 0 || position == -1)
-    return 0;
-  file_array[fd].f_pos += position;
+  // if(position == 0 || position == -1)
+  //   return 0;
+  // file_array[fd].f_pos += position;
 
   return position;
 }
@@ -132,7 +140,7 @@ int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   int invalid_fd_ind=2; //less than this is an invalid descriptor
   if (fd<invalid_fd_ind || fd>=MAX_OPEN_FILES){
-    printf("fd=%d is invalid file_array index to open\n",fd);
+    printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }
   file_array[fd].flags=0;

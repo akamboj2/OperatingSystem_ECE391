@@ -38,11 +38,19 @@ int32_t execute (const uint8_t* command){
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
   if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
     return -1;
-
+  //printf("IN READ YAY!\n");
+  // int i =0;
+  // for(i=0;i<8;i++){//this just prints everything in file array
+  //   printf("at fd:%d flags=%d\n",i,file_array[i].flags);
+  //   if (file_array[i].flags){
+  //     printf(" File type: %d\n",file_array[i].flags & -2);
+  //     file_array[i].fops_table->read(0,NULL,0);//close(i);
+  //   }
+  // }
   int32_t position = file_array[fd].fops_table->read(fd, buf, nbytes);
-  if(position == 0 || position == -1)
-    return 0;
-  file_array[fd].f_pos += position;
+  // if(position == 0 || position == -1)
+  //   return 0;
+  // file_array[fd].f_pos += position;
 
   return position;
 }
@@ -69,9 +77,7 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes){
  * Description: finds filename in directory entries, finds empty file_array spot and
                 and fills in the correct fd_struct fields in that file array, returning
                 index to that array
-                MAKE SURE THIS DOESN"T CALL THE FILE_OPEN FUNCTION, bc file_open calls this lol ---same for dir_open
-                NOTE: IF you want it to call an open function for a specific file type
-                do that in the switch statement--NOT the jump table aka don't do file_array[fd]->open()
+                User must use this to open stuff, not individual kernel space functions
  * Inputs: filename - file name as uint8 array of characters
  * Outputs/Return Values: Returns file descriptor index on succes, -1 on failure
   failure is when the file array is full, filename is garbage/not there, etc.
@@ -97,7 +103,6 @@ int32_t open (const uint8_t* filename){
   //File types are 0 for...(RTC), 1 for the directory, and 2 for a regular file --from docs
   switch(entry.file_type){
     case 0:
-      rtc_open();
       file_array[fd].fops_table= &rtc_table;
       file_array[fd].inode=0;
       file_array[fd].flags+=FD_FLAG_RTC;
@@ -115,6 +120,7 @@ int32_t open (const uint8_t* filename){
   }
   file_array[fd].f_pos=0; //file position should start at beginning for all file types
   file_arr_size+=1;
+  file_array[fd].fops_table->open(filename);
   printf("Now set fd: %d to flags: %d\n",fd,file_array[fd].flags);
 
   //finally return fd
@@ -134,7 +140,7 @@ int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   int invalid_fd_ind=2; //less than this is an invalid descriptor
   if (fd<invalid_fd_ind || fd>=MAX_OPEN_FILES){
-    printf("fd=%d is invalid file_array index to open\n",fd);
+    printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }
   file_array[fd].flags=0;

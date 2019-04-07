@@ -43,9 +43,9 @@ int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry){
  *   SIDE EFFECTS: none
  */
 int read_dentry_by_index (uint32_t index, dentry_t* dentry){
-    if (dentry==NULL) return -1; //sanity checks
     int* num_entries=(int*)filesys_addr;
     int amt_dentrys=*num_entries;
+  //  printf("in readbyind, index:%d, amt_dentrys:%d",index,amt_dentrys);
     if (index<0 || index >amt_dentrys){//64 data entries so if index is >63 it is out of bounds
         return -1;
     }
@@ -139,13 +139,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  */
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
   //firs some sanity checks
-  if (buf==NULL || nbytes<0){
+  //printf("in file_read: fd:%d,buf:%s,nbytes:%d",fd,buf,nbytes);
+  if (nbytes<0){
     return -1;
   }
   if (nbytes==0){
     return 0;
   }
-
+  //printf("reading file\n");
   //now read the file
   return read_data(file_array[fd].inode,file_array[fd].f_pos,buf, nbytes);
 }
@@ -166,6 +167,7 @@ int file_write (int32_t fd, const void* buf, int32_t nbytes){
 /*
  * file_open
  *   DESCRIPTION: Opens a file by adding it to file_array (just calls open)
+            DOES NOTHING! User must call open() anyways
  *   INPUTS: filename - name of file to open
  *   OUTPUTS: none
  *   RETURN VALUE: 0
@@ -176,7 +178,7 @@ int file_open (const uint8_t* filename){
   you will have to take some code from there and put it in rtc,dir open too
   so there is no point in repeating same code and I think it's easire this way
   */
-  open(filename);
+  //open(filename);
   return 0;
 }
 
@@ -210,21 +212,27 @@ int file_close (int32_t fd){
  *   SIDE EFFECTS: none
  */
 int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
-  dentry_t* dentry_test;
-  static int dir_index=0;
+  dentry_t dentry_test;
   int* num_entries=(int*)filesys_addr;
   int amt_dentrys=*num_entries;
-  //printf("AMOUNT DIR ENTRIES: %d\n",amt_dentrys);
+  static int dir_index=0;
+
+  // printf("AMOUNT DIR ENTRIES: %d\n",amt_dentrys);
+  // printf("On dir_read call:%d\n",dir_index);
   //already done reading directories then keep returning 0
   if (dir_index>=amt_dentrys) return 0;
 
-  if(read_dentry_by_index(dir_index,dentry_test)){
+  if(read_dentry_by_index(dir_index,&dentry_test)){
       return -1; //if reading fails return fail
   }
-
+//  printf("at file: %s\n",dentry_test.file_name);
   //now read the file name into buf
   uint8_t bytes_cpy=(nbytes>FILE_NAME_SIZE ? FILE_NAME_SIZE : nbytes);
-  memcpy(buf,dentry_test->file_name,bytes_cpy);
+  memcpy(buf,dentry_test.file_name,bytes_cpy);
+
+  //increment dir_index
+  dir_index++;
+  //printf("  Here now dir_indx is %d\n",dir_index);
   return bytes_cpy;
 }
 
@@ -251,7 +259,8 @@ int dir_write (int32_t fd, const void* buf, int32_t nbytes){
  *   SIDE EFFECTS: can only have one file open at a time
  */
 int dir_open (const uint8_t* filename){
-    return open(filename);
+    //return open(filename);
+    //uncomment this if you want to test in kernel space
     return 0;
 }
 

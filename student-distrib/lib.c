@@ -261,12 +261,7 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-<<<<<<< HEAD
-
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
-=======
-        screen_y = (screen_y + (screen_x / NUM_COLS));
->>>>>>> ee2059325ae81d0b3fc2a1340b68a7906621c4aa
         screen_x %= NUM_COLS;
     }
     if(screen_y >= NUM_ROWS){

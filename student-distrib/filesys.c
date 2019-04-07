@@ -211,20 +211,24 @@ int file_close (int32_t fd){
  */
 int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
   dentry_t* dentry_test;
-  static int dir_index=0;
   int* num_entries=(int*)filesys_addr;
   int amt_dentrys=*num_entries;
-  //printf("AMOUNT DIR ENTRIES: %d\n",amt_dentrys);
+  printf("AMOUNT DIR ENTRIES: %d\n",amt_dentrys);
+  printf("On dir_read call:%d\n",dir_index);
   //already done reading directories then keep returning 0
   if (dir_index>=amt_dentrys) return 0;
 
   if(read_dentry_by_index(dir_index,dentry_test)){
       return -1; //if reading fails return fail
   }
-
+  
   //now read the file name into buf
   uint8_t bytes_cpy=(nbytes>FILE_NAME_SIZE ? FILE_NAME_SIZE : nbytes);
   memcpy(buf,dentry_test->file_name,bytes_cpy);
+
+  //increment dir_index
+  dir_index++;
+  printf("  Here now dir_indx is %d\n",dir_index);
   return bytes_cpy;
 }
 
@@ -251,7 +255,7 @@ int dir_write (int32_t fd, const void* buf, int32_t nbytes){
  *   SIDE EFFECTS: can only have one file open at a time
  */
 int dir_open (const uint8_t* filename){
-    return open(filename);
+    //return open(filename);
     return 0;
 }
 

@@ -140,7 +140,7 @@ void readDir_test(){
 	int amt_dentrys=*num_entries;
 	int i;
 	//printf("File list:\n");
-	int fd=0;//dir_open(".");
+	int fd=open(".");
 	for(i=0; i<amt_dentrys; i++){
 		char buff[40];
 		dir_read(fd,buff,50);

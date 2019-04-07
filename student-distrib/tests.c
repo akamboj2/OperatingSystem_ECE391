@@ -135,7 +135,7 @@ void rtc_test(){
 			set_cursors(0,0);
 			rtc_write(i);
 			for (c = 0; c <= RTC_INTERVAL; c++){
-				rtc_read();
+				rtc_read(0, NULL, 0);
 				update_cursor(get_screenx(), get_screeny());
 			}
 			clear();
@@ -280,7 +280,7 @@ void write_test() {
 	int fdesc = open(fname);
 	uint8_t buffer[32];
 	write(fdesc, buffer, 100);
-	
+
 }
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */

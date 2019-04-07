@@ -32,7 +32,7 @@ int32_t execute (const uint8_t* command){
  * Side Effects: none
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
-  if(buf == NULL || fd > 7 || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
     return -1;
 
   int32_t position = file_array[fd].fops_table->read(fd, buf, nbytes);
@@ -50,13 +50,14 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
-  if(buf == NULL || fd > 7 || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+    return -1;
+
+  if(file_array[fd].flags & FD_FLAG_FILE)
     return -1;
 
   int32_t position = file_array[fd].fops_table->write(fd, buf, nbytes);
 
-  if(position == -1)
-    return 0;
   return position;
 }
 

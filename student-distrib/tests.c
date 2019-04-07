@@ -273,6 +273,15 @@ void read_test() {
 	read(fdesc, buffer, 100);
 	printf("read file");
 }
+
+void write_test() {
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	int fdesc = open(fname);
+	uint8_t buffer[32];
+	write(fdesc, buffer, 100);
+	
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 

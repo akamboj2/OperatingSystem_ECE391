@@ -11,10 +11,8 @@ kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
 keyboard.o: keyboard.c keyboard.h types.h x86_desc.h idt.h lib.h i8259.h
 lib.o: lib.c lib.h types.h
 paging.o: paging.c paging.h constants.h types.h
-<<<<<<< HEAD
-tests.o: tests.c tests.h x86_desc.h types.h lib.h
-=======
 rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
+<<<<<<< HEAD
 <<<<<<< HEAD
   sys_calls.h filesys.h keyboard.h i8259.h
 sys_calls.o: sys_calls.c sys_calls.h types.h filesys.h rtc.h keyboard.h \
@@ -28,9 +26,14 @@ sys_calls.o: sys_calls.c sys_calls.h types.h lib.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h filesys.h
 >>>>>>> master
 =======
+=======
+>>>>>>> c9a04ebccdfef5a526cb1b18daf3ce752aff278c
   sys_calls.h filesys.h i8259.h
 sys_calls.o: sys_calls.c sys_calls.h types.h filesys.h rtc.h lib.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h keyboard.h rtc.h \
   filesys.h assembly_linkage.h sys_calls.h idt.h
+<<<<<<< HEAD
 >>>>>>> akamboj2
 >>>>>>> vinithr2
+=======
+>>>>>>> c9a04ebccdfef5a526cb1b18daf3ce752aff278c

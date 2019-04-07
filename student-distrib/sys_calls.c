@@ -14,6 +14,10 @@ static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
  */
 int32_t halt (uint8_t status){
   printf("IN HALT!\n");
+  asm volatile("" //need double %% for registers single % to specify input/output from C
+                : //no outputs
+                : "%ebl"() //inputs
+                : ""); //clobbered registers
   return 0;
 }
 

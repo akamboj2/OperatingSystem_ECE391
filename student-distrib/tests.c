@@ -214,8 +214,8 @@ void read_exec(){
 void sys_call_jmptbl_test(){
 	printf("Calling system_calls_assembly\n");
 	asm volatile("MOVL $2,%eax"); //1 calls halt
-
-	//asm volatile("MOVL $2,%eax");
+	//uint_8* fname =  "ls";
+	//asm volatile("MOVL $2,%ebx");
 	asm volatile("int $0x80");
 	//system_calls_assembly();
 }

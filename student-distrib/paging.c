@@ -3,8 +3,7 @@
 //NEED 4KB alignment for PT and PD arrays
 //Needed for: CR3 Register, and table entries (PTE AND PDE) assume alignment that's why they only use
 //top 20 bits of Page_table base address (bits 31-12)
-uint32_t pageTable[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
-uint32_t pageDirectory[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
+
 //this is already 4kB aligned bc it has 1024 (1KB) entries of 4 bytes each entry (int32=4B)
 //^^jk that's not true bc it could have been statically allocated at addreess not divisble by 4kB even if its size is 4KB
 

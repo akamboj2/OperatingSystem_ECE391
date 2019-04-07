@@ -3,6 +3,22 @@
 #include "lib.h"
 #include "filesys.h"
 #include "assembly_linkage.h"
+#include "constants.h"
+#include "paging.h"
+
+
+static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
+static ftable dir_table = {&dir_read, &dir_write, &dir_open, &dir_close};
+static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
+
+int32_t stdin_write(int32_t a, const void* b, int32_t c){return 0;};
+int32_t stdout_read(int32_t a,void* b,int32_t c){return 0;};
+ftable * stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_close};
+ftable * stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
+
+
+int32_t curr_process =0;
+
 
 /*halt
  * Description: None
@@ -23,29 +39,89 @@ int32_t halt (uint8_t status){
  */
 int32_t execute (const uint8_t* command){
 //  printf("In execute!\n");
-  if(command == NULL){
+  int i = 0;
+  int args_flag = 0;
+  command = "fish";
+  //printf("%c", *command);
+  if(!command){
     return -1;
   }
-  uint8_t filename[32];
-  uint8_t data[32];
 
-  dentry_t *test;
-  //read_dentry_by_name((uint8_t*)"",test);
+  if(curr_process == 6){
+    return -1;
+  }
+  uint8_t filename[32] = {'\0'};
+  uint8_t data[32] = {'\0'};
 
-  //memcpy(filename, command, 32);
-  file_open((uint8_t*)"ls");
+  //printf(temp.inode_num);
+
+  while(command[i] != '\0' && command[i] != ' ' && i<32){
+    filename[i] = command[i];
+    i++;
+  }
+
+  dentry_t temp;
+  if(read_dentry_by_name(filename, &temp) == -1)
+    return -1;
+
+  if(command[i] != ' ')
+    args_flag = 1;
+
+  file_open(filename);
   if(file_read(0,data,32) == -1){
       file_close(0);
       return -1;
   }
   file_close(0);
-  if(data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
+
+  if(data[0] != 127 || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
     return -1;
-  //print_withoutnull((int8_t*)data, 4);
-  //printf("%s", filename);*/
+
   printf("\nIn execute\n");
-  //asm volatile("iret");
-  //context_switch();
+
+  //Paging
+  pageDirectory[32] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
+
+
+  //flush tlb
+  cli();
+  asm volatile ("MOVL %CR3, %eax;");
+  asm volatile ("MOVL %eax, %CR3;");
+  sti();
+
+  //printf("%d", temp->inode_num);
+  //load file into program page
+  int32_t nbytes = file_size(temp.inode_num);
+  uint32_t * eip = (int32_t*)&(data[24]); //eip holds ptr to 128MB
+  //printf("%x\n", *eip);
+  //printf("%", *eip);
+  read_data(temp.inode_num, 0, PROG_LOAD_ADDR, nbytes);
+
+
+  //PCB code
+  pcb_t * pcb = 2*_4MB - (curr_process+1)*2*PAGE_MEM_SIZE;
+  if(curr_process != 0){
+    pcb->parent_task =  2*_4MB - (curr_process)*2*PAGE_MEM_SIZE;
+  }
+  else pcb->parent_task = NULL;
+  curr_process++;
+  pcb->process_num = curr_process;
+  pcb->eip = *eip;
+
+  pcb->file_array[0].fops_table = stdin_table;
+  pcb->file_array[1].fops_table = stdout_table;
+  pcb->file_array[0].inode = -1;
+  pcb->file_array[1].inode = -1;
+  pcb->file_array[0].f_pos = 0;
+  pcb->file_array[1].f_pos = 0;
+  pcb->file_array[0].flags = FD_FLAG_PRESENT;
+  pcb->file_array[1].flags = FD_FLAG_PRESENT;
+  pcb->file_arr_size = 2;
+
+  //Context Switch
+  tss.ss0 = KERNEL_DS;
+  tss.esp0 = 2*_4MB - (curr_process-1)*2*PAGE_MEM_SIZE - 4; //-4
+
   return 0;
 }
 

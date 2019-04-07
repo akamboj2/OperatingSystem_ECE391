@@ -266,6 +266,15 @@ int dir_close (int32_t fd){
     return 0;
 }
 
+int32_t file_size(int32_t inode_num){
+  int* inode_block= (int*)filesys_addr;
+
+  inode_block+=MEM_SIZE_4kB/4; //skip boot block
+  //need to divide by 4 because it's pointer arithmenic and int is 4 bytes
+  inode_block+=inode_num*MEM_SIZE_4kB/4;
+  return (int32_t)*inode_block;
+}
+
 
 
 

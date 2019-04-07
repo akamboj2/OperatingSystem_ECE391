@@ -4,6 +4,9 @@
 #include "constants.h"
 #include "types.h"
 
+uint32_t pageTable[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
+uint32_t pageDirectory[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
+
 //pageTable struct
 struct pageTable {
     int address[20];    //physical address of 4K aligned page table

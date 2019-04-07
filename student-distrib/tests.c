@@ -127,7 +127,8 @@ void rtc_test(){
 }
 
 /*directory read test
- *
+ *	need to uncomment return open(filename) in dir_open,  bc
+ 		usually a user can never call dir_open
  * Inputs: None
  * Outputs: reads and lists the directories
  * Side Effects:
@@ -138,20 +139,46 @@ void readDir_test(){
 	dentry_t testind;
 	int* num_entries=(int*)filesys_addr;
 	int amt_dentrys=*num_entries;
-	int i;
+	int i=0;
 	//printf("File list:\n");
-	int fd=open(".");
-	for(i=0; i<amt_dentrys; i++){
-		char buff[40];
-		dir_read(fd,buff,50);
-	 	printf("file %d: ",i);
+	int fd=dir_open(".");//open(".");
+	char buff[40];
+	int ret=1;
+	while(ret){
+		ret=dir_read(fd,buff,50);
+		printf("file %d: \n",i);
 		print_withoutnull(buff, 32);
-		//printf(" type: %d, inode: %d \n",file_array[fd].flags,file_array[fd].inode);
+		i++;
 	}
+	// for(i=0; i<amt_dentrys; i++){
+	// 	char buff[40];
+	// 	dir_read(fd,buff,50);
+	//  	printf("file %d: \n",i);
+	// 	print_withoutnull(buff, 32);
+	// 	//printf(" type: %d, inode: %d \n",file_array[fd].flags,file_array[fd].inode);
+	// }
 }
+// void readDir_test(){
+// 	set_cursors(0,0);
+//
+// 	dentry_t testind;
+// 	int* num_entries=(int*)filesys_addr;
+// 	int amt_dentrys=*num_entries;
+// 	int i;
+// 	//printf("File list:\n");
+// 	for(i=0; i<amt_dentrys; i++){
+// 		read_dentry_by_index(i,&testind);
+//
+// 	 	printf("file %d: ",i);
+// 		print_withoutnull(testind.file_name, 32);
+// 		printf(" type: %d, inode: %d \n",testind.file_type,testind.inode_num);
+// 	}
+// }
+
 
 /*File Read Test --long text
- *
+ *	MUST UNCOMMENT OPEN(FILENAME) in file_open for this to work
+ 		OR INSTEAD CALL OPEN() NOT FILE_OPEN
  * Inputs: None
  * Outputs: reads from a file
  * Side Effects:
@@ -177,7 +204,8 @@ void read_text(){
 }
 
 /*File Read Test
- *
+*	MUST UNCOMMENT OPEN(FILENAME) in file_open for this to work
+	 OR INSTEAD CALL OPEN() NOT FILE_OPEN
  * Inputs: None
  * Outputs: reads conent from a a file
  * Side Effects:
@@ -282,10 +310,10 @@ void launch_tests(){
 	//paging_test();
 	//terminalwrite_test();
   //rtc_test();
-	readDir_test();
+	//readDir_test();
 	//read_text();
 	//read_exec();
 	//sys_call_jmptbl_test();
-	//open_test();
+	open_test();
 	//close_test();
 }

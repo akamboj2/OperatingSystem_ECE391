@@ -53,9 +53,7 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes){
  * Description: finds filename in directory entries, finds empty file_array spot and
                 and fills in the correct fd_struct fields in that file array, returning
                 index to that array
-                MAKE SURE THIS DOESN"T CALL THE FILE_OPEN FUNCTION, bc file_open calls this lol ---same for dir_open
-                NOTE: IF you want it to call an open function for a specific file type
-                do that in the switch statement--NOT the jump table aka don't do file_array[fd]->open()
+                User must use this to open stuff, not individual kernel space functions
  * Inputs: filename - file name as uint8 array of characters
  * Outputs/Return Values: Returns file descriptor index on succes, -1 on failure
   failure is when the file array is full, filename is garbage/not there, etc.
@@ -81,7 +79,6 @@ int32_t open (const uint8_t* filename){
   //File types are 0 for...(RTC), 1 for the directory, and 2 for a regular file --from docs
   switch(entry.file_type){
     case 0:
-      rtc_open();
       file_array[fd].fops_table= &rtc_table;
       file_array[fd].inode=0;
       file_array[fd].flags+=FD_FLAG_RTC;
@@ -99,6 +96,7 @@ int32_t open (const uint8_t* filename){
   }
   file_array[fd].f_pos=0; //file position should start at beginning for all file types
   file_arr_size+=1;
+  file_array[fd].fops_table->open(filename);
   printf("Now set fd: %d to flags: %d\n",fd,file_array[fd].flags);
 
   //finally return fd

@@ -140,12 +140,13 @@ void readDir_test(){
 	int amt_dentrys=*num_entries;
 	int i;
 	//printf("File list:\n");
+	int fd=0;//dir_open(".");
 	for(i=0; i<amt_dentrys; i++){
-		read_dentry_by_index(i,&testind);
-
+		char buff[40];
+		dir_read(fd,buff,50);
 	 	printf("file %d: ",i);
-		print_withoutnull(testind.file_name, 32);
-		printf(" type: %d, inode: %d \n",testind.file_type,testind.inode_num);
+		print_withoutnull(buff, 32);
+		//printf(" type: %d, inode: %d \n",file_array[fd].flags,file_array[fd].inode);
 	}
 }
 
@@ -281,10 +282,10 @@ void launch_tests(){
 	//paging_test();
 	//terminalwrite_test();
   //rtc_test();
-	//readDir_test();
+	readDir_test();
 	//read_text();
 	//read_exec();
 	//sys_call_jmptbl_test();
 	//open_test();
-	close_test();
+	//close_test();
 }

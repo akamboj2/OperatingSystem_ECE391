@@ -140,12 +140,13 @@ void readDir_test(){
 	int amt_dentrys=*num_entries;
 	int i;
 	//printf("File list:\n");
+	int fd=0;//dir_open(".");
 	for(i=0; i<amt_dentrys; i++){
-		read_dentry_by_index(i,&testind);
-
+		char buff[40];
+		dir_read(fd,buff,50);
 	 	printf("file %d: ",i);
-		print_withoutnull(testind.file_name, 32);
-		printf(" type: %d, inode: %d \n",testind.file_type,testind.inode_num);
+		print_withoutnull(buff, 32);
+		//printf(" type: %d, inode: %d \n",file_array[fd].flags,file_array[fd].inode);
 	}
 }
 
@@ -229,25 +230,48 @@ void open_test(){
 	uint8_t fname[20]="frame0.txt";
 	printf("Opening frame0.txt\n");
 	open(fname);
-	open("ls");
-	open("counter");
-	open("fish");
-	open(".");
-	open("cat");
-	open("pingpong");
-	open("sigtest");
-	printf("SHOULD BE failure: %d\n",open("testprint"));
+	open((uint8_t*) "ls");
+	printf("SUCCESS 2==%d\n",open((uint8_t*)"counter"));
+	open((uint8_t*)"fish");
+	open((uint8_t*)".");
+	open((uint8_t*)"cat");
+	open((uint8_t*)".");
+	open((uint8_t*)"sigtest");
+	printf("SHOULD BE failure: %d\n",open((uint8_t*)"testprint"));
 	printf("After opening here is what is in file array\n");
 	int i =0;
 	for(i=0;i<8;i++){//this just prints everything in file array
-		printf("at fd:%d flags=%d",i,file_array[i].flags);
+		printf("at fd:%d flags=%d\n",i,file_array[i].flags);
 		if (file_array[i].flags){
 			printf(" File type: %d\n",file_array[i].flags & -2);
-			file_array[i].fops_table->(0,NULL,0)//close(i);
+			file_array[i].fops_table->read(0,NULL,0);//close(i);
 		}
 	}
 	printf("end of loop in open_test\n");
 }
+
+/*close_test
+ *	tests close system call
+ * Inputs: None
+ * Outputs: none
+ * Side Effects:
+ */
+ void close_test(){
+	 close(3);
+	 close(5);
+	 int fd1=open((uint8_t*)"counter"), //0
+			fd2=open((uint8_t*)"fish"),//1
+			fd3=open((uint8_t*)"cat"),//2
+			fd4=open((uint8_t*)"pingpong");//3
+	 printf("fds %d, %d, %d, %d\n",fd1,fd2,fd3,fd4);
+
+	 close(2);
+	 open((uint8_t*)".");//now 2 should have flags:4
+	 int i=0;
+	 for(i=0;i<8;i++){
+		 printf("fd: %d, flags:%d\n",i,file_array[i].flags);
+	 }
+ }
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -258,9 +282,10 @@ void launch_tests(){
 	//paging_test();
 	//terminalwrite_test();
   //rtc_test();
-	//readDir_test();
+	readDir_test();
 	//read_text();
 	//read_exec();
 	//sys_call_jmptbl_test();
-	open_test();
+	//open_test();
+	//close_test();
 }

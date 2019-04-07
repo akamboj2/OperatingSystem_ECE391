@@ -4,6 +4,7 @@
 #include "types.h"
 #include "filesys.h"
 #include "rtc.h"
+#include "keyboard.h"
 
 #define FD_FLAG_PRESENT 1
 #define FD_FLAG_FILE 2
@@ -30,9 +31,14 @@ typedef struct ftable{
     int32_t (*close) (int32_t);
 } ftable;
 
-static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
-static ftable dir_table = {&dir_read, &dir_write, &dir_open, &dir_close};
-static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
+// extern ftable file_table;
+// extern ftable dir_table;
+// extern ftable rtc_table;
+//next two functions are dummies for the stdin and out table
+// static int32_t stdin_write(int32_t a, const void* b, int32_t c){return 0;};
+// static int32_t stdout_read(int32_t a,void* b,int32_t c){return 0;};
+// static ftable stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_close};
+// static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
 
 typedef struct fd_struct{
   ftable* fops_table; //file operations table (see below jump tables)

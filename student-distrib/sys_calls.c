@@ -13,11 +13,11 @@ static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
  * Side Effects: none
  */
 int32_t halt (uint8_t status){
-  printf("IN HALT!\n");
-  asm volatile("" //need double %% for registers single % to specify input/output from C
-                : //no outputs
-                : "%ebl"() //inputs
-                : ""); //clobbered registers
+  // printf("IN HALT!\n");
+  // asm volatile("" //need double %% for registers single % to specify input/output from C
+  //               : //no outputs
+  //               : "%ebl"() //inputs
+  //               : ""); //clobbered registers
   return 0;
 }
 
@@ -40,7 +40,7 @@ int32_t execute (const uint8_t* command){
  * Side Effects: none
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES + 2 || fd < 2)
     return -1;
   //printf("IN READ YAY!\n");
   // int i =0;
@@ -66,7 +66,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES + 2 || fd < 2)
     return -1;
 
   if(file_array[fd].flags & FD_FLAG_FILE)
@@ -95,8 +95,8 @@ int32_t open (const uint8_t* filename){
   }
   //printf("in open\n");
   //now find empty entry in file_array
-  int fd =0; //this is loop counter and also holds empty index in file_array
-  for(fd=0;fd<MAX_OPEN_FILES;fd++){
+  int fd = 2; //this is loop counter and also holds empty index in file_array
+  for(fd = 2;fd < MAX_OPEN_FILES + 2;fd++){
     if (!(FD_FLAG_PRESENT & file_array[fd].flags)){ //if it is not present
       file_array[fd].flags=FD_FLAG_PRESENT;
       break;
@@ -143,7 +143,7 @@ int32_t open (const uint8_t* filename){
 int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   int invalid_fd_ind=2; //less than this is an invalid descriptor
-  if (fd<invalid_fd_ind || fd>=MAX_OPEN_FILES){
+  if (fd < invalid_fd_ind || fd + 2 >= MAX_OPEN_FILES){
     printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }

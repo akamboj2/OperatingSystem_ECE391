@@ -10,7 +10,7 @@
 #define FD_FLAG_FILE 2
 #define FD_FLAG_DIRECTORY 4
 #define FD_FLAG_RTC 8
-#define MAX_OPEN_FILES 8
+#define MAX_OPEN_FILES 6
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command);

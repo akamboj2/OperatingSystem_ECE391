@@ -167,6 +167,8 @@ void entry(unsigned long magic, unsigned long addr) {
 	outb(prev | 0x40, 0x71);*/
 
 
+    paging_init();
+
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 

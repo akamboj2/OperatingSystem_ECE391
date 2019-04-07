@@ -12,6 +12,7 @@ uint32_t pageDirectory[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
 * initializes the paging_initno args
 * modifies the pagetable and page directory
 */
+
 void paging_init() {
 //    int numPages = VIRTUAL_MEMORY_SPACE / PAGE_MEM_SIZE;    //4 MB/4 kB = 4000 kB/4 kb = 1000 pages (4 MB total space, 4kB per page)
     //Specifications of bits 8-0 of pde and pte of a normal Page, the  Kernel Page and the video Page

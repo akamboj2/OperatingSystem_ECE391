@@ -34,6 +34,7 @@ static inline void assertion_failure(){
 /* IDT Test - Example
  *
  * Asserts that first 10 IDT entries are not NULL. Also used to test div by zero exception handler
+
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: None
@@ -41,7 +42,7 @@ static inline void assertion_failure(){
  * Files: x86_desc.h/S
  */
 int idt_test(){
-	TEST_HEADER;
+	// TEST_HEADER;
 
 	int result = PASS;
 																								//idt populated test
@@ -87,8 +88,6 @@ int paging_test(){
 	return result;
 }
 
-
-// add more tests here
 
 /* Checkpoint 2 tests */
 
@@ -136,12 +135,12 @@ void rtc_test(){
 void readDir_test(){
 	set_cursors(0,0);
 
-	dentry_t testind;
-	int* num_entries=(int*)filesys_addr;
-	int amt_dentrys=*num_entries;
+	// dentry_t testind;
+	// int* num_entries=(int*)filesys_addr;
+	// int amt_dentrys=*num_entries;
 	int i=0;
 	//printf("File list:\n");
-	int fd=dir_open(".");//open(".");
+	int fd=dir_open((uint8_t)".");//open(".");
 	char buff[40];
 	int ret=1;
 	while(ret){
@@ -316,4 +315,5 @@ void launch_tests(){
 	//sys_call_jmptbl_test();
 	open_test();
 	//close_test();
+
 }

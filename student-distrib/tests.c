@@ -41,7 +41,7 @@ static inline void assertion_failure(){
  * Files: x86_desc.h/S
  */
 int idt_test(){
-	TEST_HEADER;
+	// TEST_HEADER;
 
 	int result = PASS;
 																								//idt populated test
@@ -89,7 +89,23 @@ int paging_test(){
 
 
 // add more tests here
+int paging_test(){
+	/*Values contained in your paging structures
+		Dereferencing different address ranges with paging turned on
+	*/
+	int result = FAIL;
+	printf("Testing paging: result at %x\n",&result);
+	if (&result&&0x400000){
+		//if it's linear addr has bit 22 =1 that means it is in page directory 1
+		//which is where kernel code is supposed to be
+		result =PASS;
+	}
 
+	int* test=NULL;
+	//printf("%d\n",*test);
+	printf("hello\n");
+	return result;
+}
 /* Checkpoint 2 tests */
 
 /*Terminal Write Test
@@ -272,6 +288,23 @@ void open_test(){
 		 printf("fd: %d, flags:%d\n",i,file_array[i].flags);
 	 }
  }
+void read_test() {
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	int fdesc = open(fname);
+	uint8_t buffer[32];
+	read(fdesc, buffer, 100);
+	printf("read file");
+}
+
+void write_test() {
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	int fdesc = open(fname);
+	uint8_t buffer[32];
+	write(fdesc, buffer, 100);
+	
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 

@@ -108,7 +108,7 @@ int32_t open (const uint8_t* filename){
   file_arr_size+=1;
 
   //finally return fd
-  return 0;
+  return fd;
 }
 
 /*close

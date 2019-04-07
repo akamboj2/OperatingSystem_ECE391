@@ -264,6 +264,15 @@ void open_test(){
 	}
 	printf("end of loop in open_test\n");
 }
+
+void read_test() {
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	int fdesc = open(fname);
+	uint8_t buffer[32];
+	read(fdesc, buffer, 100);
+	printf("read file");
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 

@@ -4,6 +4,7 @@
 #include "constants.h"
 #include "types.h"
 
+
 //pageTable struct
 struct pageTable {
     int address[20];    //physical address of 4K aligned page table

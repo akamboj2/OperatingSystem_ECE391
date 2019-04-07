@@ -14,8 +14,6 @@ typedef struct dentry_t{
   char reserved[24];
 } dentry_t;
 
-uint8_t FILE_NAME[33];    //file scope variable indicating name of file to open
-dentry_t* dir_entry;
 extern int32_t filesys_addr;
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);

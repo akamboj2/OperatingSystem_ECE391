@@ -88,24 +88,6 @@ int paging_test(){
 }
 
 
-// add more tests here
-int paging_test(){
-	/*Values contained in your paging structures
-		Dereferencing different address ranges with paging turned on
-	*/
-	int result = FAIL;
-	printf("Testing paging: result at %x\n",&result);
-	if (&result&&0x400000){
-		//if it's linear addr has bit 22 =1 that means it is in page directory 1
-		//which is where kernel code is supposed to be
-		result =PASS;
-	}
-
-	int* test=NULL;
-	//printf("%d\n",*test);
-	printf("hello\n");
-	return result;
-}
 /* Checkpoint 2 tests */
 
 /*Terminal Write Test
@@ -143,7 +125,8 @@ void rtc_test(){
 }
 
 /*directory read test
- *
+ *	need to uncomment return open(filename) in dir_open,  bc
+ 		usually a user can never call dir_open
  * Inputs: None
  * Outputs: reads and lists the directories
  * Side Effects:
@@ -151,23 +134,49 @@ void rtc_test(){
 void readDir_test(){
 	set_cursors(0,0);
 
-	dentry_t testind;
-	int* num_entries=(int*)filesys_addr;
-	int amt_dentrys=*num_entries;
-	int i;
+	// dentry_t testind;
+	// int* num_entries=(int*)filesys_addr;
+	// int amt_dentrys=*num_entries;
+	int i=0;
 	//printf("File list:\n");
-	int fd=0;//dir_open(".");
-	for(i=0; i<amt_dentrys; i++){
-		char buff[40];
-		dir_read(fd,buff,50);
-	 	printf("file %d: ",i);
+	int fd=dir_open((uint8_t)".");//open(".");
+	char buff[40];
+	int ret=1;
+	while(ret){
+		ret=dir_read(fd,buff,50);
+		printf("file %d: \n",i);
 		print_withoutnull(buff, 32);
-		//printf(" type: %d, inode: %d \n",file_array[fd].flags,file_array[fd].inode);
+		i++;
 	}
+	// for(i=0; i<amt_dentrys; i++){
+	// 	char buff[40];
+	// 	dir_read(fd,buff,50);
+	//  	printf("file %d: \n",i);
+	// 	print_withoutnull(buff, 32);
+	// 	//printf(" type: %d, inode: %d \n",file_array[fd].flags,file_array[fd].inode);
+	// }
 }
+// void readDir_test(){
+// 	set_cursors(0,0);
+//
+// 	dentry_t testind;
+// 	int* num_entries=(int*)filesys_addr;
+// 	int amt_dentrys=*num_entries;
+// 	int i;
+// 	//printf("File list:\n");
+// 	for(i=0; i<amt_dentrys; i++){
+// 		read_dentry_by_index(i,&testind);
+//
+// 	 	printf("file %d: ",i);
+// 		print_withoutnull(testind.file_name, 32);
+// 		printf(" type: %d, inode: %d \n",testind.file_type,testind.inode_num);
+// 	}
+// }
+
 
 /*File Read Test --long text
- *
+ *	MUST UNCOMMENT OPEN(FILENAME) in file_open for this to work
+ 		OR INSTEAD CALL OPEN() NOT FILE_OPEN
  * Inputs: None
  * Outputs: reads from a file
  * Side Effects:
@@ -184,16 +193,18 @@ void read_text(){
 
 	uint8_t buf[CONTENT_BUFFER+1];
 
-	file_open((uint8_t*)"verylargetextwithverylongname.tx");
+	open((uint8_t*)"verylargetextwithverylongname.txt");
 	//file_open("frame0.txt");
 	file_read(0,buf,CONTENT_BUFFER);
+	//read(0,buf,CONTENT_BUFFER);
 	file_close(0);
 	printf((int8_t*)buf);
 
 }
 
 /*File Read Test
- *
+*	MUST UNCOMMENT OPEN(FILENAME) in file_open for this to work
+	 OR INSTEAD CALL OPEN() NOT FILE_OPEN
  * Inputs: None
  * Outputs: reads conent from a a file
  * Side Effects:
@@ -293,8 +304,8 @@ void read_test() {
 	printf("Opening frame0.txt\n");
 	int fdesc = open(fname);
 	uint8_t buffer[32];
-	read(fdesc, buffer, 100);
-	printf("read file");
+	 read(fdesc, buffer, 100);
+	//printf("read file: %s\n",buffer);
 }
 
 void write_test() {
@@ -302,7 +313,7 @@ void write_test() {
 	printf("Opening frame0.txt\n");
 	int fdesc = open(fname);
 	uint8_t buffer[32];
-	write(fdesc, buffer, 100);
+	printf("trying to write: %d:",write(fdesc, buffer, 100));
 
 }
 /* Checkpoint 4 tests */
@@ -315,10 +326,11 @@ void launch_tests(){
 	//paging_test();
 	//terminalwrite_test();
   //rtc_test();
-	readDir_test();
-	//read_text();
+	//readDir_test();
+	read_text();
 	//read_exec();
 	//sys_call_jmptbl_test();
 	//open_test();
 	//close_test();
+	//read_test();
 }

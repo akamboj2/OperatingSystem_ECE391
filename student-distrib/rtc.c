@@ -36,7 +36,7 @@ void rtc_handler(){
  * OUPUTS: 0
  * SIDE EFFECTS: sets nio_flag to 0, communicates with rtc ports
  */
-int rtc_open(){
+int rtc_open(int32_t fd, void* buf, int32_t nbytes){
     cli();
     nio_flag = 0;
     char prev = inb(RTC_RW);
@@ -53,7 +53,7 @@ int rtc_open(){
  * OUTPUTS: 0
  * SIDE EFFECTS: None
  */
-int rtc_close(){
+int rtc_close(int32_t fd, void* buf, int32_t nbytes){
     return 0;
 }
 
@@ -65,7 +65,7 @@ int rtc_close(){
  *               interrupt is detected. after this occurs, it
  *               exits the loop and resets the flag.
  */
-int rtc_read(){
+int rtc_read(int32_t fd, void* buf, int32_t nbytes){
     //int i;
     while(!nio_flag){   //flag used to hold loop
 

@@ -34,7 +34,6 @@ static inline void assertion_failure(){
 /* IDT Test - Example
  *
  * Asserts that first 10 IDT entries are not NULL. Also used to test div by zero exception handler
-
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: None
@@ -118,7 +117,7 @@ void rtc_test(){
 			set_cursors(0,0);
 			rtc_write(i);
 			for (c = 0; c <= RTC_INTERVAL; c++){
-				rtc_read();
+				rtc_read(0, NULL, 0);
 				update_cursor(get_screenx(), get_screeny());
 			}
 			clear();
@@ -277,6 +276,7 @@ void open_test(){
 	printf("end of loop in open_test\n");
 }
 
+
 /*close_test
  *	tests close system call
  * Inputs: None
@@ -299,6 +299,25 @@ void open_test(){
 		 printf("fd: %d, flags:%d\n",i,file_array[i].flags);
 	 }
  }
+
+void read_test() {
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	int fdesc = open(fname);
+	uint8_t buffer[32];
+	read(fdesc, buffer, 100);
+	printf("read file");
+}
+
+void write_test() {
+	uint8_t fname[20]="frame0.txt";
+	printf("Opening frame0.txt\n");
+	int fdesc = open(fname);
+	uint8_t buffer[32];
+	write(fdesc, buffer, 100);
+
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -315,5 +334,4 @@ void launch_tests(){
 	//sys_call_jmptbl_test();
 	open_test();
 	//close_test();
-
 }

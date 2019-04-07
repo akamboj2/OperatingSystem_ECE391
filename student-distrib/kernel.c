@@ -14,7 +14,7 @@
 #include "rtc.h"
 #include "filesys.h"
 
-#define RUN_TESTS
+#define RUN_TESTS 1
 
 #define REG_A 0x8A
 #define REG_B 0x8B
@@ -28,7 +28,6 @@
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
 int32_t filesys_addr;
-
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -197,10 +196,11 @@ void entry(unsigned long magic, unsigned long addr) {
 	prev = inb(RTC_RW);
 	outb(REG_A, RTC_REG);
 	outb(RATE_RTC | (prev&0xf0), RTC_RW);*/
-  rtc_open();
+  rtc_open(0,NULL,0);
   //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
-	sti();
+
+  sti();
 	//rate = 6;
 	//outb(0x8A, 0x70);
 	//char prev1 = inb(0x71);

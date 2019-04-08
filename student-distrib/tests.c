@@ -195,9 +195,9 @@ void read_text(){
 
 	open((uint8_t*)"verylargetextwithverylongname.txt");
 	//file_open("frame0.txt");
-	file_read(0,buf,CONTENT_BUFFER);
+	file_read(2,buf,CONTENT_BUFFER);
 	//read(0,buf,CONTENT_BUFFER);
-	file_close(0);
+	file_close(2);
 	printf((int8_t*)buf);
 
 }
@@ -304,8 +304,8 @@ void read_test() {
 	printf("Opening frame0.txt\n");
 	int fdesc = open(fname);
 	uint8_t buffer[32];
-	 read(fdesc, buffer, 100);
-	//printf("read file: %s\n",buffer);
+	read(fdesc, buffer, 100);
+	printf("read file: %s\n","made it");
 }
 
 void write_test() {
@@ -325,10 +325,12 @@ void launch_tests(){
 	//TEST_OUTPUT("idt_test", idt_test());
 	//paging_test();
 	//terminalwrite_test();
-  //rtc_test();
+    //rtc_test();
 	//readDir_test();
-	read_text();
+	//read_text();
 	//read_exec();
+	read_test();
+	// write_test();
 	//sys_call_jmptbl_test();
 	//open_test();
 	//close_test();

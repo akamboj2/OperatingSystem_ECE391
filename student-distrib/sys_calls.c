@@ -42,7 +42,7 @@ int32_t execute (const uint8_t* command){
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
   if(buf == NULL || fd >= MAX_OPEN_FILES + 2 || fd < 2)
     return -1;
-  //printf("IN READ YAY!\n");
+  printf("IN READ YAY!\n");
   // int i =0;
   // for(i=0;i<8;i++){//this just prints everything in file array
   //   printf("at fd:%d flags=%d\n",i,file_array[i].flags);
@@ -142,8 +142,8 @@ int32_t open (const uint8_t* filename){
  */
 int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
-  int invalid_fd_ind=2; //less than this is an invalid descriptor
-  if (fd < invalid_fd_ind || fd + 2 >= MAX_OPEN_FILES){
+  int first_fd_ind = 2; //less than this is an invalid descriptor
+  if (fd < first_fd_ind || fd + 2 >= MAX_OPEN_FILES){
     printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }

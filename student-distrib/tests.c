@@ -139,7 +139,7 @@ void readDir_test(){
 	// int amt_dentrys=*num_entries;
 	int i=0;
 	//printf("File list:\n");
-	int fd=dir_open((uint8_t)".");//open(".");
+	int fd=dir_open((uint8_t*)".");//open(".");
 	char buff[40];
 	int ret=1;
 	while(ret){
@@ -193,10 +193,10 @@ void read_text(){
 
 	uint8_t buf[CONTENT_BUFFER+1];
 
-	open((uint8_t*)"verylargetextwithverylongname.txt");
+	int fd = open((uint8_t*)"verylargetextwithverylongname.txt");
 	//file_open("frame0.txt");
-	file_read(2,buf,CONTENT_BUFFER);
-	//read(0,buf,CONTENT_BUFFER);
+	//file_read(2,buf,CONTENT_BUFFER);
+	read(fd,buf,CONTENT_BUFFER);
 	file_close(2);
 	printf((int8_t*)buf);
 
@@ -300,12 +300,12 @@ void open_test(){
 	 }
  }
 void read_test() {
-	uint8_t fname[20]="frame0.txt";
-	printf("Opening frame0.txt\n");
+	uint8_t fname[20]="frame1.txt";//"shell";
+	printf("Opening shell\n");
 	int fdesc = open(fname);
-	uint8_t buffer[32];
-	read(fdesc, buffer, 100);
-	printf("read file: %s\n","made it");
+	uint8_t buffer[10000];
+	printf("Bytes: %d\n",read(fdesc, buffer, 10000));
+	printf("read file: %s\n",buffer);
 }
 
 void write_test() {
@@ -316,6 +316,7 @@ void write_test() {
 	printf("trying to write: %d:",write(fdesc, buffer, 100));
 
 }
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -330,7 +331,7 @@ void launch_tests(){
 	//read_text();
 	//read_exec();
 	read_test();
-	// write_test();
+	//write_test();
 	//sys_call_jmptbl_test();
 	//open_test();
 	//close_test();

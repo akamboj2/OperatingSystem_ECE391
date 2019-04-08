@@ -88,6 +88,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
     int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
     if (offset>file_length){ return -1; }
+    //printf("Actual file_length %d\n",file_length);
 
     int skip_dbs=offset/MEM_SIZE_4kB; //if your offset is more than 4kb u have to know which data blcok to go to
     int offset_indb=offset % MEM_SIZE_4kB; //how far into the block to offset before beginning to read
@@ -107,8 +108,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     //printf("print by char:\n");
     int count=0; //for how many bytes are copied
     char* at_db=data_block + (*inode_block+1)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
-    char eof=26; //end of file character
-    while(*at_db != eof && count<=length){           //check if this is actually the end of file character
+    //char eof=0; //end of file character
+    while(count<file_length && count<length){           //check if this is actually the end of file character
         //printf("%c",*at_db);
         *buf=*at_db; //do the copy
         buf++;
@@ -119,6 +120,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
             at_db=data_block+(*inode_block+1)*MEM_SIZE_4kB; //don't need the offset_indb bc we're reading from the begining of the next blocks
         }
     }
+
+  //  printf("AT END OF FILE! %d, char is %d\n",*at_db != eof,(int)*at_db);
 
     return count;//this may be less then length in the case the eof was reached before length bytes were read
 }

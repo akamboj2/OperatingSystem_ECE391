@@ -5,6 +5,8 @@
 static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
 static ftable dir_table = {&dir_read, &dir_write, &dir_open, &dir_close};
 static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
+static int32_t file_arr_size = 0;
+
 
 /*halt
  * Description: None
@@ -40,7 +42,7 @@ int32_t execute (const uint8_t* command){
  * Side Effects: none
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
-  if(buf == NULL || fd >= MAX_OPEN_FILES + 2 || fd < 2)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
     return -1;
   printf("IN READ YAY!\n");
   // int i =0;
@@ -66,7 +68,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
-  if(buf == NULL || fd >= MAX_OPEN_FILES + 2 || fd < 2)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 2)
     return -1;
 
   if(file_array[fd].flags & FD_FLAG_FILE)
@@ -96,7 +98,7 @@ int32_t open (const uint8_t* filename){
   //printf("in open\n");
   //now find empty entry in file_array
   int fd = 2; //this is loop counter and also holds empty index in file_array
-  for(fd = 2;fd < MAX_OPEN_FILES + 2;fd++){
+  for(fd = 2;fd < MAX_OPEN_FILES;fd++){
     if (!(FD_FLAG_PRESENT & file_array[fd].flags)){ //if it is not present
       file_array[fd].flags=FD_FLAG_PRESENT;
       break;
@@ -143,7 +145,7 @@ int32_t open (const uint8_t* filename){
 int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   int first_fd_ind = 2; //less than this is an invalid descriptor
-  if (fd < first_fd_ind || fd + 2 >= MAX_OPEN_FILES){
+  if (fd < first_fd_ind || fd >= MAX_OPEN_FILES){
     printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }

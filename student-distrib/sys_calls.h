@@ -10,7 +10,7 @@
 #define FD_FLAG_FILE 2
 #define FD_FLAG_DIRECTORY 4
 #define FD_FLAG_RTC 8
-#define MAX_OPEN_FILES 6
+#define MAX_OPEN_FILES 8
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command);
@@ -48,7 +48,6 @@ typedef struct fd_struct{
 } fd_struct;
 
 fd_struct file_array[MAX_OPEN_FILES];
-static int32_t file_arr_size = 0;
 
 
 

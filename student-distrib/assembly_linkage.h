@@ -7,6 +7,6 @@
 void keyboard_assembly();
 void rtc_assembly();
 void system_calls_assembly();
-void context_switch();
+void context_switch(uint32_t* eip);
 #endif
 #endif

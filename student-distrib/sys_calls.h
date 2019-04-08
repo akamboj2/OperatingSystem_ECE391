@@ -11,6 +11,7 @@
 #define FD_FLAG_DIRECTORY 4
 #define FD_FLAG_RTC 8
 #define MAX_OPEN_FILES 8
+#define _ONE_STACK_ENTRY 0x04
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command);
@@ -47,7 +48,7 @@ struct pcb_t{
   int32_t k_stack;  //kernel stack number
   pcb_t * parent_task;
   pcb_t * child_task;
-  uit32_t eip;
+  uint32_t eip;
 };
 
 #endif

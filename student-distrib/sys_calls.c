@@ -5,7 +5,7 @@
 #include "assembly_linkage.h"
 #include "constants.h"
 #include "paging.h"
-
+#include "x86_desc.h"
 
 static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
 static ftable dir_table = {&dir_read, &dir_write, &dir_open, &dir_close};
@@ -17,7 +17,7 @@ ftable * stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_clo
 ftable * stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
 
 
-int32_t curr_process =0;
+int32_t curr_process = 0;
 
 
 /*halt
@@ -27,7 +27,19 @@ int32_t curr_process =0;
  * Side Effects: none
  */
 int32_t halt (uint8_t status){
-  printf("IN HALT!\n");
+  //close files in fd
+  //restore parent data (esp and ebp for parent?)
+
+  //restore parent paging
+  curr_process--;
+  pageDirectory[32] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
+
+  tss.esp0 = 2*_4MB - (curr_process)*2*PAGE_MEM_SIZE - 4;
+
+  //to mimic a return in exec, store ebp into pcb before iret. Then take ebp in pcb and load into %ebp register. Then iret
+
+
+  //printf("IN HALT!\n");
   return 0;
 }
 
@@ -41,7 +53,7 @@ int32_t execute (const uint8_t* command){
 //  printf("In execute!\n");
   int i = 0;
   int args_flag = 0;
-  command = "fish";
+  //command = "fish";
   //printf("%c", *command);
   if(!command){
     return -1;
@@ -77,11 +89,8 @@ int32_t execute (const uint8_t* command){
   if(data[0] != 127 || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
     return -1;
 
-  printf("\nIn execute\n");
-
   //Paging
-  pageDirectory[32] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
-
+  pageDirectory[32] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
 
   //flush tlb
   cli();
@@ -89,22 +98,27 @@ int32_t execute (const uint8_t* command){
   asm volatile ("MOVL %eax, %CR3;");
   sti();
 
+  uint32_t * eip = (int32_t*)&(data[24]); //eip holds ptr to 128MB
+  //printf("%d\n", eip);
+
   //printf("%d", temp->inode_num);
   //load file into program page
   int32_t nbytes = file_size(temp.inode_num);
-  uint32_t * eip = (int32_t*)&(data[24]); //eip holds ptr to 128MB
-  //printf("%x\n", *eip);
-  //printf("%", *eip);
-  read_data(temp.inode_num, 0, PROG_LOAD_ADDR, nbytes);
+  //printf("%d", nbytes);
+  //FIX BEFORE 6 PM PLS
+  if(read_data(temp.inode_num, 0, PROG_LOAD_ADDR, nbytes) == -1)
+    return -1;
+
 
 
   //PCB code
-  pcb_t * pcb = 2*_4MB - (curr_process+1)*2*PAGE_MEM_SIZE;
+  pcb_t * pcb = _8MB - (curr_process+1)*_8KB;
   if(curr_process != 0){
-    pcb->parent_task =  2*_4MB - (curr_process)*2*PAGE_MEM_SIZE;
+    pcb->parent_task =  _8MB - (curr_process)*_8KB;
   }
   else pcb->parent_task = NULL;
   curr_process++;
+
   pcb->process_num = curr_process;
   pcb->eip = *eip;
 
@@ -120,10 +134,30 @@ int32_t execute (const uint8_t* command){
 
   //Context Switch
   tss.ss0 = KERNEL_DS;
-  tss.esp0 = 2*_4MB - (curr_process-1)*2*PAGE_MEM_SIZE - 4; //-4
+  tss.esp0 = _8MB - (curr_process-1)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
+  //printf("%x",get_eip());
+  //for eip argument, push eip found above
+  //cli();
+  context_switch(*eip);
+  //sti();
+  /*asm volatile ("mov $35, %ax;");
+  asm volatile ("mov %ax, %ds;");
+  asm volatile ("mov %ax, %es;");
+  asm volatile ("mov %ax, %fs;");
+  asm volatile ("mov %ax, %gs;");
+
+  asm volatile ("movl %esp, %eax;");
+  asm volatile ("pushl $35;");  //#ds
+  asm volatile ("pushl (0x8400000-0x4);"); //#esp points to 132MB minus one block up
+  asm volatile ("pushfl;");  //#push eflags
+  asm volatile ("pushl $27;");  //#cs
+  asm volatile ("pushl get_eip;"); //#push bits[24:27]
+  printf("%x\n", get_eip());
+  asm volatile ("iret;");*/
 
   return 0;
 }
+
 
 /*read
  * Description: None

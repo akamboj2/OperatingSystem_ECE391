@@ -232,5 +232,5 @@ void launch_tests(){
 	//readDir_test();
 	//read_text();
 	//read_exec();
-	sys_call_jmptbl_test();
+	//sys_call_jmptbl_test();
 }

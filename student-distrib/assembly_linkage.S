@@ -86,15 +86,31 @@ popl %ds
 popl %es
 iret
 
+#credit to OSDev
 context_switch:
 #push onto stack for IRET in sys call functions to remove
 #CURRENTLY CAUSING PAGE FAULT
-pushl %ds
-pushl %esp
-pushfl  #pushes eflags
-pushl %cs
-pushl %esp #pushes eip
+cli
+movl %eax, %ebx
+
+movw $0x2B, %ax
+movw %ax, %ds
+movw %ax, %es
+movw %ax, %fs
+movw %ax, %gs
+
+movl %esp, %eax
+pushl $0x2B  #ds
+pushl $(0x83FFFFC) #esp points to 132MB minus one block up
+pushfl  #push eflags
+popl  %edx
+orl   $0x200, %edx #enables interrupt bit in eflags for user mode since cli disables it
+pushl %edx
+pushl $0x23  #cs
+pushl %ebx #push bits[24:27]
+#sti
 iret
+
 
 sys_call_table:
 .long 0 #sys_calls are from 1-10 so need to exclude zero?

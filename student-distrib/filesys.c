@@ -94,7 +94,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     //now inode_block is pointing to the correct data block #
 
     char* data_block= (char*) filesys_addr;
-    data_block+=MEM_SIZE_4kB*(amt_inodes); //skip all 64, 4kb chunks of memory (1 bootblock + 63 inode blocks)
+    data_block+=MEM_SIZE_4kB*(amt_inodes+1); //skip all 64, 4kb chunks of memory (1 bootblock + 63 inode blocks)
 
     /*char testbuff[100];
     memcpy(testbuff,data_block + 6*MEM_SIZE_4kB,100);
@@ -102,21 +102,22 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     //printf("data block content: %s",data_block + *inode_block*MEM_SIZE_4kB);
 
     //printf("print by char:\n");
-    int count=0; //for how many bytes are copied
-    char* at_db=data_block + (*inode_block+1)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
+    uint32_t count=0; //for how many bytes are copied
+    char* at_db=data_block + (*inode_block)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
     char eof=26; //end of file character
-    while(*at_db != eof && count<length){           //check if this is actually the end of file character
+    //FIX END OF FILE
+    while(count < file_length && count<length){           //check if this is actually the end of file character
         //printf("%c",*at_db);
         *buf=*at_db; //do the copy
         buf++;
         at_db++;
         count++;
-        if ((int)at_db % MEM_SIZE_4kB==0){//this means u are done with this data block! move to next
+        if ((int)(at_db) % MEM_SIZE_4kB==0){//thizs means u are done with this data block! move to next
             inode_block++; //this should jump 4 bytes to the index of the next data block
-            at_db=data_block+(*inode_block+1)*MEM_SIZE_4kB; //don't need the offset_indb bc we're reading from the begining of the next blocks
+            at_db=data_block+(*inode_block)*MEM_SIZE_4kB; //don't need the offset_indb bc we're reading from the begining of the next blocks
         }
-    }
 
+    }
     return count;//this may be less then length in the case the eof was reached before length bytes were read
 }
 

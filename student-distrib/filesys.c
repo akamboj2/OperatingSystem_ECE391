@@ -67,64 +67,61 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
  *   RETURN VALUE: -1 on failure, 0 on end of file, else number of bytes read and placed into buffer
  *   SIDE EFFECTS: buf may not point to where it started when returning
  */
-int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
-    // dentry_t* dentry;
-    // if(dentry=read_dentry_by_index(inode,dentry)){
-    //     return -1; //fails if inode doesn't exist or read_dentry_by_index can't find it
-    // }///^don't do that bc that function is index into bootblock not inode number
-    if (buf==NULL) return -1; //sanity checks
-    if (length==0) return 0;
-    int* inode_block= (int*)filesys_addr;
-    int amt_inodes=*(inode_block+1);//63;
-    //printf("N inodes # %d\n",amt_inodes);
+ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
+     // dentry_t* dentry;
+     // if(dentry=read_dentry_by_index(inode,dentry)){
+     //     return -1; //fails if inode doesn't exist or read_dentry_by_index can't find it
+     // }///^don't do that bc that function is index into bootblock not inode number
 
-    inode_block+=MEM_SIZE_4kB/4; //skip boot block
-    //need to divide by 4 because it's pointer arithmenic and int is 4 bytes
-    inode_block+=inode*MEM_SIZE_4kB/4;
-    //now inode_block should be pointing to correct inode
+     int* inode_block= (int*)filesys_addr;
+     int amt_inodes=*(inode_block+1);//63;
+     //printf("N inodes # %d\n",amt_inodes);
 
-    //printf("first data block: length:%d num: %d\n",*inode_block,*(inode_block+1));
+     inode_block+=MEM_SIZE_4kB/4; //skip boot block
+     //need to divide by 4 because it's pointer arithmenic and int is 4 bytes
+     inode_block+=inode*MEM_SIZE_4kB/4;
+     //now inode_block should be pointing to correct inode
+
+     //printf("first data block: length:%d num: %d\n",*inode_block,*(inode_block+1));
 
 
-    int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
-    if (offset>file_length){ return -1; }
-    //printf("Actual file_length %d\n",file_length);
+     int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
+     if (offset>file_length){ return -1; }
 
-    int skip_dbs=offset/MEM_SIZE_4kB; //if your offset is more than 4kb u have to know which data blcok to go to
-    int offset_indb=offset % MEM_SIZE_4kB; //how far into the block to offset before beginning to read
-    inode_block++; //skip length bytes in inode
+     int skip_dbs=offset/MEM_SIZE_4kB; //if your offset is more than 4kb u have to know which data blcok to go to
+     int offset_indb=offset % MEM_SIZE_4kB; //how far into the block to offset before beginning to read
+     inode_block++; //skip length bytes in inode
 
-    inode_block+=skip_dbs;
-    //now inode_block is pointing to the correct data block #
+     inode_block+=skip_dbs;
+     //now inode_block is pointing to the correct data block #
 
-    char* data_block= (char*) filesys_addr;
-    data_block+=MEM_SIZE_4kB*(amt_inodes); //skip all 64, 4kb chunks of memory (1 bootblock + 63 inode blocks)
+     char* data_block= (char*) filesys_addr;
+     data_block+=MEM_SIZE_4kB*(amt_inodes+1); //skip all 64, 4kb chunks of memory (1 bootblock + 63 inode blocks)
 
-    /*char testbuff[100];
-    memcpy(testbuff,data_block + 6*MEM_SIZE_4kB,100);
-    printf("data block 6: %s",testbuff);*/
-    //printf("data block content: %s",data_block + *inode_block*MEM_SIZE_4kB);
+     /*char testbuff[100];
+     memcpy(testbuff,data_block + 6*MEM_SIZE_4kB,100);
+     printf("data block 6: %s",testbuff);*/
+     //printf("data block content: %s",data_block + *inode_block*MEM_SIZE_4kB);
 
-    //printf("print by char:\n");
-    int count=0; //for how many bytes are copied
-    char* at_db=data_block + (*inode_block+1)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
-    //char eof=0; //end of file character
-    while(count<file_length && count<length){           //check if this is actually the end of file character
-        //printf("%c",*at_db);
-        *buf=*at_db; //do the copy
-        buf++;
-        at_db++;
-        count++;
-        if ((int)at_db % MEM_SIZE_4kB==0){//this means u are done with this data block! move to next
-            inode_block++; //this should jump 4 bytes to the index of the next data block
-            at_db=data_block+(*inode_block+1)*MEM_SIZE_4kB; //don't need the offset_indb bc we're reading from the begining of the next blocks
-        }
-    }
+     //printf("print by char:\n");
+     uint32_t count=0; //for how many bytes are copied
+     char* at_db=data_block + (*inode_block)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
+     char eof=26; //end of file character
+     //FIX END OF FILE
+     while(count < file_length && count<length){           //check if this is actually the end of file character
+         //printf("%c",*at_db);
+         *buf=*at_db; //do the copy
+         buf++;
+         at_db++;
+         count++;
+         if ((int)(at_db) % MEM_SIZE_4kB==0){//thizs means u are done with this data block! move to next
+             inode_block++; //this should jump 4 bytes to the index of the next data block
+             at_db=data_block+(*inode_block)*MEM_SIZE_4kB; //don't need the offset_indb bc we're reading from the begining of the next blocks
+         }
 
-  //  printf("AT END OF FILE! %d, char is %d\n",*at_db != eof,(int)*at_db);
-
-    return count;//this may be less then length in the case the eof was reached before length bytes were read
-}
+     }
+     return count;//this may be less then length in the case the eof was reached before length bytes were read
+ }
 
 
 
@@ -141,6 +138,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  *   SIDE EFFECTS: none
  */
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
+  pcb_t* cur_pcb=getPCB(curr_process);
   //firs some sanity checks
   //printf("in file_read: fd:%d,buf:%s,nbytes:%d",fd,buf,nbytes);
   if (nbytes<0){
@@ -151,7 +149,7 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
   }
   //printf("reading file\n");
   //now read the file
-  return read_data(file_array[fd].inode,file_array[fd].f_pos,buf, nbytes);
+  return read_data(cur_pcb->file_array[fd].inode, cur_pcb->file_array[fd].f_pos, buf, nbytes);
 }
 
 /*
@@ -280,6 +278,15 @@ int dir_open (const uint8_t* filename){
 int dir_close (int32_t fd){
   //printf("Enter dir_close!\n");
     return 0;
+}
+
+int32_t file_size(int32_t inode_num){
+  int* inode_block= (int*)filesys_addr;
+
+  inode_block+=MEM_SIZE_4kB/4; //skip boot block
+  //need to divide by 4 because it's pointer arithmenic and int is 4 bytes
+  inode_block+=inode_num*MEM_SIZE_4kB/4;
+  return (int32_t)*inode_block;
 }
 
 

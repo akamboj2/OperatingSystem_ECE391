@@ -242,7 +242,9 @@ void read_exec(){
  */
 void sys_call_jmptbl_test(){
 	printf("Calling system_calls_assembly\n");
-	asm volatile("MOVL $1,%eax"); //1 calls halt
+	asm volatile("MOVL $2,%eax"); //1 calls halt
+	//uint_8* fname =  "ls";
+	//asm volatile("MOVL $2,%ebx");
 	asm volatile("int $0x80");
 	//system_calls_assembly();
 }
@@ -254,6 +256,8 @@ void sys_call_jmptbl_test(){
  * Side Effects:
  */
 void open_test(){
+	pcb_t* cur_pcb=getPCB(curr_process);
+
 	uint8_t fname[20]="frame0.txt";
 	printf("Opening frame0.txt\n");
 	open(fname);
@@ -268,10 +272,10 @@ void open_test(){
 	printf("After opening here is what is in file array\n");
 	int i =0;
 	for(i=0;i<8;i++){//this just prints everything in file array
-		printf("at fd:%d flags=%d\n",i,file_array[i].flags);
-		if (file_array[i].flags){
-			printf(" File type: %d\n",file_array[i].flags & -2);
-			file_array[i].fops_table->read(0,NULL,0);//close(i);
+		printf("at fd:%d flags=%d\n",i,cur_pcb->file_array[i].flags);
+		if (cur_pcb->file_array[i].flags){
+			printf(" File type: %d\n",cur_pcb->file_array[i].flags & -2);
+			cur_pcb->file_array[i].fops_table->read(0,NULL,0);//close(i);
 		}
 	}
 	printf("end of loop in open_test\n");
@@ -284,6 +288,8 @@ void open_test(){
  * Side Effects:
  */
  void close_test(){
+	 pcb_t* cur_pcb=getPCB(curr_process);
+
 	 close(3);
 	 close(5);
 	 int fd1=open((uint8_t*)"counter"), //0
@@ -296,7 +302,7 @@ void open_test(){
 	 open((uint8_t*)".");//now 2 should have flags:4
 	 int i=0;
 	 for(i=0;i<8;i++){
-		 printf("fd: %d, flags:%d\n",i,file_array[i].flags);
+		 printf("fd: %d, flags:%d\n",i,cur_pcb->file_array[i].flags);
 	 }
  }
 void read_test() {
@@ -330,10 +336,9 @@ void launch_tests(){
 	//readDir_test();
 	//read_text();
 	//read_exec();
-	read_test();
-	//write_test();
 	//sys_call_jmptbl_test();
 	//open_test();
 	//close_test();
 	//read_test();
+
 }

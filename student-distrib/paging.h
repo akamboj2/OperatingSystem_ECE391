@@ -4,9 +4,11 @@
 #include "constants.h"
 #include "types.h"
 
+uint32_t pageTable[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
+uint32_t pageDirectory[PAGE_TABLE_SIZE] __attribute__((aligned(PAGE_MEM_SIZE)));
 
 //pageTable struct
-struct pageTable {
+/*struct pageDirectory {
     int address[20];    //physical address of 4K aligned page table
     int avail[3];       //free to use
     int globalPage;     //controls TLB behavior
@@ -21,7 +23,7 @@ struct pageTable {
 };
 
 //struct for the page directory
-struct pageDirectory {
+struct  pageTable{
     int address[20];    //physical address of 4K aligned page table
     int avail[3];       //free to use
     int globalPage;     //controls TLB behavior
@@ -34,6 +36,7 @@ struct pageDirectory {
     int readWrite;      //1 for read/write, 0 for read only
     int present;        //1 for valid PDE
 };
+*/
 
 extern void paging_init();
 

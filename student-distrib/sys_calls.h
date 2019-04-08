@@ -11,6 +11,7 @@
 #define FD_FLAG_DIRECTORY 4
 #define FD_FLAG_RTC 8
 #define MAX_OPEN_FILES 8
+#define _ONE_STACK_ENTRY 0x04
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command);
@@ -31,6 +32,7 @@ typedef struct ftable{
     int32_t (*close) (int32_t);
 } ftable;
 
+//this stuff moved to sys_calll.c
 // extern ftable file_table;
 // extern ftable dir_table;
 // extern ftable rtc_table;
@@ -47,9 +49,20 @@ typedef struct fd_struct{
   int32_t flags;  //flags indicating present (bit 1) and device type (see defines above)
 } fd_struct;
 
-fd_struct file_array[MAX_OPEN_FILES];
 
+typedef struct pcb_t pcb_t;
+int32_t curr_process;
 
+struct pcb_t{
+  fd_struct file_array[MAX_OPEN_FILES];
+  int32_t file_arr_size;
+  int32_t process_num;
+  int32_t k_stack;  //kernel stack number
+  pcb_t * parent_task;
+  pcb_t * child_task;
+  uint32_t eip;
+};
 
+pcb_t * getPCB(int32_t curr);
 
 #endif

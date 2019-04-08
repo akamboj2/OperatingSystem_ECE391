@@ -150,7 +150,6 @@ void general_protection(){
    while(1){};
 }
 void page_fault(){
-   clear();
 	 printf("page fault");
    cli();
    while(1){};

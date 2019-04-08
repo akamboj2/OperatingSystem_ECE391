@@ -176,9 +176,9 @@ int32_t terminal_close(int32_t fd){
  */
 int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
 	int index = 0;
-	if(nbytes < 0 || nbytes > KB_BUF_SIZE)
+	if(nbytes < 0)
 		return -1;
-  while (index < nbytes) {
+  while (index < (nbytes<KB_BUF_SIZE ? nbytes:KB_BUF_SIZE)) {
       buf[index] = keyboard_buffer[index];
       index++;
   }

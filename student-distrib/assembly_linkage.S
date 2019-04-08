@@ -112,10 +112,10 @@ iret
 
 .global reverse_system_call
 reverse_system_call:
+movl %edi, %ebp
+movl %edi, %esp
 leave
 ret
-
-
 
 sys_call_table:
 .long 0 #sys_calls are from 1-10 so need to exclude zero?

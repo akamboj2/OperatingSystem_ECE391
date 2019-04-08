@@ -24,52 +24,52 @@ pcb_t * getPCB(int32_t curr){
 
 
 /*halt
- * Description: None
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
- * Side Effects: none
+ * Description: jump to execute's return for the parent function
+ * Inputs: return value to be transmitted to execute via eax register
+ * Outputs/Return Values: Returns 0 (never actually returns! jumps to exectute's return)
+ * Side Effects: writes to eax, esp, and ebp
  */
 int32_t halt (uint8_t status){
   //close files in fd
   int i;
   cli();
   pcb_t* pcb_to_be_halted = getPCB(curr_process);
+  pcb_t* pcb_parent = getPCB(curr_process-1);
+  //correct file array. this will close any files opened by the process
   for(i=0; i<8; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
           pcb_to_be_halted->file_array[i].fops_table->close(i);
       pcb_to_be_halted->file_array[i].flags = 0;
   }
 
-  //restore parent data (esp and ebp for parent?)
-
   //restore parent paging
   curr_process--;
-  pageDirectory[32] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
+  pageDirectory[_4B] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
 
-  tss.esp0 = 2*_4MB - (curr_process)*2*PAGE_MEM_SIZE - 4;
+  tss.esp0 = pcb_to_be_halted->esp;
 
   sti();
 
-  //to mimic a return in exec, store ebp into pcb before iret. Then take ebp in pcb and load into %ebp register. Then iret
+//prepare for jump to execute by finding the correct esp value in parent pcb
   asm volatile(
     ""
     "MOVL %0, %%eax;"
     "MOVL %1, %%esp;"
     "MOVL %2, %%ebp;"
     "JMP reverse_system_call;"
-    : : "r" ((uint32_t)status), "r" ((uint32_t)(2*_4MB - (curr_process)*4*PAGE_MEM_SIZE) - 4), "r" ((uint32_t)(2*_4MB - (curr_process)*4*PAGE_MEM_SIZE - 4)) : "eax"
+    : : "r" ((uint32_t)status), "r" (pcb_to_be_halted->esp), "r" (pcb_to_be_halted->esp) : "eax"
   );
 
-  //printf("IN HALT!\n");
   return 0;
 }
 
 /*execute
  * Description: Initialize file_array to have all flags=0 (indicate not present), and set fd=0 to std out
   and fd=1 to stdin, ---AND INITIALIZE FILE_ARR_SIZE TO 2!
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
- * Side Effects: none
+ * Inputs: buffer which represents the command the user would like to execute
+ * Outputs/Return Values: Returns 0 on succes, -1 on failure, 256 if process creates a fault
+ * Side Effects: writes to paging, kerel stack, and jumps to a place in memory based on entry
+ * point in file about to be executed.
  */
 int32_t execute (const uint8_t* command){
 //  printf("In execute!\n");
@@ -85,16 +85,18 @@ int32_t execute (const uint8_t* command){
   if(curr_process == 6){
     return -1;
   }
-  uint8_t filename[32] = {'\0'};
-  uint8_t data[32] = {'\0'};
+  uint8_t filename[_4B] = {'\0'};
+  uint8_t data[_4B] = {'\0'};
 
-  //printf(temp.inode_num);
+  //parse first argument
 
-  while(command[i] != '\0' && command[i] != ' ' && i<32){
+  while(command[i] != '\0' && command[i] != ' ' && i<_4B){
     //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;
   }
+
+  //ensure that the file actually exists
 
   dentry_t temp;
   if(read_dentry_by_name(filename, &temp) == -1)
@@ -103,14 +105,16 @@ int32_t execute (const uint8_t* command){
   if(command[i] != ' ')
     args_flag = 1;
 
-  read_data(temp.inode_num, 0, data, 32);
-  //printf("r_d: %d\n", x);
+  //read data to check if executable and to find point to start executing at
 
-  if(data[0] != 127 || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
+  read_data(temp.inode_num, 0, data, _4B);
+
+  //check if file is a executable
+  if(data[0] != DEL || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
     return -1;
 
   //Paging
-  pageDirectory[32] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
+  pageDirectory[_4B] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
 
   //flush tlb
   cli();
@@ -119,19 +123,17 @@ int32_t execute (const uint8_t* command){
   sti();
 
   uint32_t * eip = (uint32_t*)&(data[24]); //eip holds ptr to 128MB
-  //printf("%d\n", eip);
 
-  //printf("%d", temp->inode_num);
   //load file into program page
   int32_t nbytes = file_size(temp.inode_num);
-  //printf("%d", nbytes);
-  //FIX BEFORE 6 PM PLS
+
+
   if(read_data(temp.inode_num, 0, (uint8_t *)PROG_LOAD_ADDR, nbytes) == -1)
     return -1;
 
 
 
-  //PCB code
+  //PCB initialization
   pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
   if(curr_process != 0){
     pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
@@ -141,7 +143,7 @@ int32_t execute (const uint8_t* command){
 
   pcb->process_num = curr_process;
   pcb->eip = *eip;
-
+  asm volatile("MOVL %%esp, %%eax;" : "=r" (pcb->esp));
   pcb->file_array[0].fops_table = &stdin_table;
   pcb->file_array[1].fops_table = &stdout_table;
   pcb->file_array[0].inode = -1;
@@ -155,9 +157,9 @@ int32_t execute (const uint8_t* command){
   //Context Switch
   tss.ss0 = KERNEL_DS;
   tss.esp0 = _8MB - (curr_process-1)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
-  //printf("%x",get_eip());
+
   //for eip argument, push eip found above
-  //cli();
+
   context_switch((uint32_t*)*eip);
 
   asm volatile ("iret;");

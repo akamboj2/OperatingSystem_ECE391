@@ -37,9 +37,9 @@ int shift_key = FALSE;
 int cap_flag = FALSE;
 int ctrl_key = FALSE;
 int keyboard_buffer_index = 0;
+int enter_flag = 0;
 
-unsigned char keyboard_buffer[KB_BUF_SIZE];
-unsigned char rw_buffer[KB_BUF_SIZE];
+unsigned char keyboard_buffer[KB_BUF_SIZE] = {'\0'};
 
 /*keyboard handler
  *
@@ -91,7 +91,7 @@ void keyboard_handler(){
     if(keyboard_buffer_index < KB_BUF_SIZE){
       char print_char = ' ';
       keyboard_buffer[keyboard_buffer_index] = print_char;
-      keyboard_buffer[keyboard_buffer_index + 1] = '\0';
+      //keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
       printf("%c", print_char);
     }
@@ -118,15 +118,15 @@ void keyboard_handler(){
 	else if(c == ENTER_PRESS){		//when enter is pressed, call terminal read and write to repeat onto new line
 		//keyboard_buffer[keyboard_buffer_index] = '\n';
 		//keyboard_buffer[keyboard_buffer_index + 1] = '\0';
-		int n = terminal_read(0,rw_buffer,KB_BUF_SIZE);
-		printf("%c", '\n');
-		terminal_write(0,rw_buffer,n);
-		int i; 																																						//CLEARS BUFFER FOR TESTING PURPOSES ONLY
-		for(i = 0; i < KB_BUF_SIZE; i++){
-			keyboard_buffer[i] = '\0';
-			rw_buffer[i] = '\0';
+		//int n = terminal_read(0,rw_buffer,KB_BUF_SIZE);
+		if(keyboard_buffer_index < KB_BUF_SIZE){
+			char print_char = '\n';
+      keyboard_buffer[keyboard_buffer_index] =  '\n';
+			printf("%c", print_char);
+			keyboard_buffer_index++;
 		}
-		keyboard_buffer_index = 0;
+		//terminal_write(0,rw_buffer,n);
+		enter_flag =1;
 	}
 	else if(c<=char_upper && c>=char_lower){		//outputs all other types of characters
     char print_char;
@@ -138,7 +138,7 @@ void keyboard_handler(){
   		 print_char = upper_char_list[c-1];
     if(keyboard_buffer_index < KB_BUF_SIZE && print_char != '\0'){
       keyboard_buffer[keyboard_buffer_index] = print_char;
-      keyboard_buffer[keyboard_buffer_index + 1] = '\0';
+      //keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
       printf("%c", print_char);
     }
@@ -175,13 +175,22 @@ int32_t terminal_close(int32_t fd){
  * Side Effects: none
  */
 int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
+	int i;
 	int index = 0;
 	if(nbytes < 0)
 		return -1;
+	while(enter_flag!=1){
+
+	}
+	enter_flag=0;
   while (index < (nbytes<KB_BUF_SIZE ? nbytes:KB_BUF_SIZE)) {
       buf[index] = keyboard_buffer[index];
       index++;
   }
+	for(i = 0; i < KB_BUF_SIZE; i++){
+		keyboard_buffer[i] = '\0';
+	}
+	keyboard_buffer_index = 0;
   return index;
 }
 

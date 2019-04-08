@@ -45,7 +45,7 @@ void idt_init(){
   add_vector(18, &machine_check, K_LVL, CODE_TYPE);
   add_vector(19, &floating_point_exception, K_LVL, CODE_TYPE);
 
-  add_vector(0x80, &system_calls_assembly, U_LVL, DATA_TYPE);
+  add_vector(0x80, &system_calls_assembly, U_LVL, 1);
 
   add_vector(40, &rtc_assembly, K_LVL, DATA_TYPE);
   add_vector(33, &keyboard_assembly, K_LVL, DATA_TYPE);

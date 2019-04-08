@@ -72,7 +72,8 @@ int32_t execute (const uint8_t* command){
 
   //printf(temp.inode_num);
 
-  while(command[i] != '\0' && command[i] != ' ' && i<32){
+  while(command[i] != '\0' && command[i] != '\n' && command[i] != ' ' && i<32){
+    //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;
   }
@@ -84,7 +85,7 @@ int32_t execute (const uint8_t* command){
   if(command[i] != ' ')
     args_flag = 1;
 
-  int x = read_data(temp.inode_num, 0, data, 32);
+  read_data(temp.inode_num, 0, data, 32);
   //printf("r_d: %d\n", x);
 
   if(data[0] != 127 || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
@@ -255,7 +256,7 @@ int32_t open (const uint8_t* filename){
   cur_pcb->file_array[fd].f_pos=0; //file position should start at beginning for all file types
   cur_pcb->file_arr_size+=1;
   cur_pcb->file_array[fd].fops_table->open(filename);
-  printf("Now set fd: %d to flags: %d\n",fd,cur_pcb->file_array[fd].flags);
+  //printf("Now set fd: %d to flags: %d\n",fd,cur_pcb->file_array[fd].flags);
 
   //finally return fd
   return fd;

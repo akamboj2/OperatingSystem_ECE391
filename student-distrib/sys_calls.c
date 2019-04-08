@@ -72,7 +72,7 @@ int32_t execute (const uint8_t* command){
 
   //printf(temp.inode_num);
 
-  while(command[i] != '\0' && command[i] != '\n' && command[i] != ' ' && i<32){
+  while(command[i] != '\0' && command[i] != ' ' && i<32){
     //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;

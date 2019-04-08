@@ -183,7 +183,7 @@ int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
 
 	}
 	enter_flag=0;
-  while (index < (nbytes<KB_BUF_SIZE ? nbytes:KB_BUF_SIZE)) {
+  while (index < (nbytes<keyboard_buffer_index ? nbytes:keyboard_buffer_index)) {
       buf[index] = keyboard_buffer[index];
       index++;
   }

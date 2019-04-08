@@ -16,10 +16,10 @@ int32_t stdout_read(int32_t a,void* b,int32_t c){return 0;};
 static ftable stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_close};
 static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
 
-curr_process = 0;
+int32_t curr_process = 0;
 
 pcb_t * getPCB(int32_t curr){
-    return _8MB - (curr_process)*_8KB;
+    return (pcb_t*)(_8MB - (curr_process)*_8KB);
 }
 
 
@@ -31,6 +31,15 @@ pcb_t * getPCB(int32_t curr){
  */
 int32_t halt (uint8_t status){
   //close files in fd
+  int i;
+  cli();
+  pcb_t* pcb_to_be_halted = getPCB(curr_process);
+  for(i=0; i<8; i++){
+      if(pcb_to_be_halted->file_array[i].flags != 0)
+          pcb_to_be_halted->file_array[i].fops_table->close(i);
+      pcb_to_be_halted->file_array[i].flags = 0;
+  }
+
   //restore parent data (esp and ebp for parent?)
 
   //restore parent paging
@@ -39,8 +48,17 @@ int32_t halt (uint8_t status){
 
   tss.esp0 = 2*_4MB - (curr_process)*2*PAGE_MEM_SIZE - 4;
 
-  //to mimic a return in exec, store ebp into pcb before iret. Then take ebp in pcb and load into %ebp register. Then iret
+  sti();
 
+  //to mimic a return in exec, store ebp into pcb before iret. Then take ebp in pcb and load into %ebp register. Then iret
+  asm volatile(
+    ""
+    "MOVL %0, %%eax;"
+    "MOVL %1, %%esp;"
+    "MOVL %2, %%ebp;"
+    "JMP reverse_system_call;"
+    : : "r" ((uint32_t)status), "r" ((uint32_t)(2*_4MB - (curr_process)*4*PAGE_MEM_SIZE) - 4), "r" ((uint32_t)(2*_4MB - (curr_process)*4*PAGE_MEM_SIZE - 4)) : "eax"
+  );
 
   //printf("IN HALT!\n");
   return 0;
@@ -48,7 +66,7 @@ int32_t halt (uint8_t status){
 
 /*execute
  * Description: Initialize file_array to have all flags=0 (indicate not present), and set fd=0 to std out
-  and fd=1 to stdin, ---AND INITIALIZEW FILE_ARR_SIZE TO 2!
+  and fd=1 to stdin, ---AND INITIALIZE FILE_ARR_SIZE TO 2!
  * Inputs: None
  * Outputs/Return Values: Returns 0 on succes, -1 on failure
  * Side Effects: none
@@ -100,7 +118,7 @@ int32_t execute (const uint8_t* command){
   asm volatile ("MOVL %eax, %CR3;");
   sti();
 
-  uint32_t * eip = (int32_t*)&(data[24]); //eip holds ptr to 128MB
+  uint32_t * eip = (uint32_t*)&(data[24]); //eip holds ptr to 128MB
   //printf("%d\n", eip);
 
   //printf("%d", temp->inode_num);
@@ -108,15 +126,15 @@ int32_t execute (const uint8_t* command){
   int32_t nbytes = file_size(temp.inode_num);
   //printf("%d", nbytes);
   //FIX BEFORE 6 PM PLS
-  if(read_data(temp.inode_num, 0, PROG_LOAD_ADDR, nbytes) == -1)
+  if(read_data(temp.inode_num, 0, (uint8_t *)PROG_LOAD_ADDR, nbytes) == -1)
     return -1;
 
 
 
   //PCB code
-  pcb_t * pcb = _8MB - (curr_process+1)*_8KB;
+  pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
   if(curr_process != 0){
-    pcb->parent_task =  _8MB - (curr_process)*_8KB;
+    pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
   }
   else pcb->parent_task = NULL;
   curr_process++;
@@ -140,22 +158,9 @@ int32_t execute (const uint8_t* command){
   //printf("%x",get_eip());
   //for eip argument, push eip found above
   //cli();
-  context_switch(*eip);
-  //sti();
-  /*asm volatile ("mov $35, %ax;");
-  asm volatile ("mov %ax, %ds;");
-  asm volatile ("mov %ax, %es;");
-  asm volatile ("mov %ax, %fs;");
-  asm volatile ("mov %ax, %gs;");
+  context_switch((uint32_t*)*eip);
 
-  asm volatile ("movl %esp, %eax;");
-  asm volatile ("pushl $35;");  //#ds
-  asm volatile ("pushl (0x8400000-0x4);"); //#esp points to 132MB minus one block up
-  asm volatile ("pushfl;");  //#push eflags
-  asm volatile ("pushl $27;");  //#cs
-  asm volatile ("pushl get_eip;"); //#push bits[24:27]
-  printf("%x\n", get_eip());
-  asm volatile ("iret;");*/
+  asm volatile ("iret;");
 
   return 0;
 }

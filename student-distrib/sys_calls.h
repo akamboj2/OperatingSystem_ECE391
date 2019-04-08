@@ -32,7 +32,7 @@ typedef struct ftable{
     int32_t (*close) (int32_t);
 } ftable;
 
-//this stuff moved to sys_calll.c
+//this stuff moved to sys_calls.c
 // extern ftable file_table;
 // extern ftable dir_table;
 // extern ftable rtc_table;
@@ -51,7 +51,7 @@ typedef struct fd_struct{
 
 
 typedef struct pcb_t pcb_t;
-int32_t curr_process;
+extern int32_t curr_process;
 
 struct pcb_t{
   fd_struct file_array[MAX_OPEN_FILES];

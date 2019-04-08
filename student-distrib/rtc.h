@@ -11,17 +11,17 @@
 void rtc_handler();
 
 //initializating for rtc
-int rtc_open(int32_t fd, void* buf, int32_t nbytes);
+int rtc_open(const uint8_t* fd);
 
 //close rtc and clears any terminal specific variables
-int rtc_close(int32_t fd, void* buf, int32_t nbytes);
+int rtc_close(int32_t fd);
 
 //block until next interrupt
 //NOT FOR READING RTC FREQUENCY
 int rtc_read(int32_t fd, void* buf, int32_t nbytes);
 
 //change frequency of the rtc
-int rtc_write(int rate);
+int rtc_write(int32_t rate, const void* buf, int32_t nbytes);
 
 //this is solely used for rtc_read
 //this is what breaks the loop in rtc_read

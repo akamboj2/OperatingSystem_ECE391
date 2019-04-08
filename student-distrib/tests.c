@@ -115,7 +115,7 @@ void rtc_test(){
 	int i, c;
 	for(i=MAXSPEED; i<=MINSPEED; i++){	//tests RTC by modifying freq through write and using read to delay
 			set_cursors(0,0);
-			rtc_write(i);
+			rtc_write(i, NULL, 0);
 			for (c = 0; c <= RTC_INTERVAL; c++){
 				rtc_read(0, NULL, 0);
 				update_cursor(get_screenx(), get_screeny());

@@ -89,7 +89,6 @@ iret
 #credit to OSDev
 context_switch:
 #push onto stack for IRET in sys call functions to remove
-#CURRENTLY CAUSING PAGE FAULT
 cli
 movl %eax, %ebx
 
@@ -110,6 +109,12 @@ pushl $0x23  #cs
 pushl %ebx #push bits[24:27]
 #sti
 iret
+
+.global reverse_system_call
+reverse_system_call:
+leave
+ret
+
 
 
 sys_call_table:

@@ -106,7 +106,7 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
      //printf("print by char:\n");
      uint32_t count=0; //for how many bytes are copied
      char* at_db=data_block + (*inode_block)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
-     char eof=26; //end of file character
+     //char eof=26; //end of file character
      //FIX END OF FILE
      while(count < file_length && count<length){           //check if this is actually the end of file character
          //printf("%c",*at_db);

@@ -39,9 +39,6 @@ void paging_init() {
     asm volatile ("MOVL %CR0, %edx; ORL $0x80000000, %edx; MOVL %edx, %CR0; leave; ret;");
 
 
-    //IF IT's Still not working ask about PSE. How does it work if only one page is 4MB but rest are 4KB?
-    //How would processor know whether to read linear address as DIR|OFFSET or DIR|TABLE|OFFSET?
-
     /*Question: How does page dir[1] map to kernel page if offset is
     0x00CF9A00  0000FFFF in gdt x86_desc.c?
     x00 00 00000 "Base" in segment descriptor format or linear address

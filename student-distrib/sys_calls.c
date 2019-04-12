@@ -116,6 +116,7 @@ int32_t execute (const uint8_t* command){
 
   //Paging
   pageDirectory[_4B] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
+  //4B bc it's 32th entry in page directory (director is size 4MB) 32*4 =128MB address
 
   //flush tlb
   cli();

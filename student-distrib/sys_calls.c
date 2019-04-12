@@ -46,7 +46,8 @@ int32_t halt (uint8_t status){
   curr_process--;
   pageDirectory[_4B] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
 
-  tss.esp0 = pcb_to_be_halted->esp;
+  tss.esp0 = pcb_to_be_halted->esp0;
+  printf("\n%x\n", tss.esp0);
 
   sti();
 
@@ -57,9 +58,9 @@ int32_t halt (uint8_t status){
     "MOVL %1, %%esp;"
     "MOVL %2, %%ebp;"
     "JMP reverse_system_call;"
-    : : "r" ((uint32_t)status), "r" (pcb_to_be_halted->esp), "r" (pcb_to_be_halted->esp) : "eax"
+    : : "r" ((uint32_t)status), "r" (pcb_to_be_halted->esp), "r" (pcb_to_be_halted->ebp) : "eax"
   );
-
+  //paste this back into eax: (uint32_t)status)
   return 0;
 }
 
@@ -143,7 +144,8 @@ int32_t execute (const uint8_t* command){
 
   pcb->process_num = curr_process;
   pcb->eip = *eip;
-  asm volatile("MOVL %%esp, %%eax;" : "=r" (pcb->esp));
+  asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb->ebp));
+  asm volatile("MOVL %%esp, %%eax;" : "=a" (pcb->esp));
   pcb->file_array[0].fops_table = &stdin_table;
   pcb->file_array[1].fops_table = &stdout_table;
   pcb->file_array[0].inode = -1;
@@ -156,6 +158,7 @@ int32_t execute (const uint8_t* command){
 
   //Context Switch
   tss.ss0 = KERNEL_DS;
+  pcb->esp0 = tss.esp0;
   tss.esp0 = _8MB - (curr_process-1)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
 
   //for eip argument, push eip found above

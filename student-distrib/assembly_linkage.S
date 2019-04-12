@@ -3,6 +3,7 @@
 .globl rtc_assembly
 .globl system_calls_assembly
 .globl context_switch
+.globl reverse_system_call
 
 keyboard_assembly:
 pushl %es
@@ -110,10 +111,7 @@ pushl %ebx #push bits[24:27]
 #sti
 iret
 
-.global reverse_system_call
 reverse_system_call:
-movl %edi, %ebp
-movl %edi, %esp
 leave
 ret
 

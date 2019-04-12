@@ -62,6 +62,8 @@ struct pcb_t{
   pcb_t * child_task;
   uint32_t eip;
   uint32_t esp;
+  uint32_t ebp;
+  uint32_t esp0;
 };
 
 pcb_t * getPCB(int32_t curr);

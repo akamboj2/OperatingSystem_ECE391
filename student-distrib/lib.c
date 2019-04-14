@@ -89,6 +89,7 @@ int32_t print_withoutnull(int8_t *buffer, int nbytes){
   int i;
   for(i = 0; i < nbytes; i++){
     temp_buf[i] = buffer[i];
+    //buffer[i] = '\0';
   }
   temp_buf[nbytes] = '\0';
   return puts(temp_buf);

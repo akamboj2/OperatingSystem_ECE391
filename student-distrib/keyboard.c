@@ -211,5 +211,6 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 		return 0;
 	//if(nbytes < 0 || nbytes >= sizeof(buf)) //less than or equal to account for length the null char adds
 		//return -1;
+		//printf('\n');
 	return print_withoutnull((int8_t*)buf, nbytes);
 }

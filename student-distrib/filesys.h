@@ -6,7 +6,7 @@
 
 #define MEM_SIZE_4kB          0x1000      //4096 = 2^12 bytes; 4 KB
 #define NUM_INODES            64          // 63 inodes + bootblock
-#define FILE_NAME_SIZE 32
+#define FILE_NAME_SIZE        32
 typedef struct dentry_t{
   int8_t file_name[FILE_NAME_SIZE]; //this struct just needs to take up 64 bytes;
   int file_type;
@@ -14,6 +14,7 @@ typedef struct dentry_t{
   char reserved[24];
 } dentry_t;
 
+int dir_index;
 extern int32_t filesys_addr;
 
 int32_t read_dentry_by_name (const uint8_t* fname, dentry_t* dentry);

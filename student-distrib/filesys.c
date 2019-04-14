@@ -214,9 +214,9 @@ int file_close (int32_t fd){
  */
 int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
   dentry_t dentry_test;
+  int i = 0;
   int* num_entries=(int*)filesys_addr;
   int amt_dentrys=*num_entries;
-  static int dir_index=0;
 
   // printf("AMOUNT DIR ENTRIES: %d\n",amt_dentrys);
   // printf("On dir_read call:%d\n",dir_index);
@@ -229,7 +229,15 @@ int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
 //  printf("at file: %s\n",dentry_test.file_name);
   //now read the file name into buf
   uint8_t bytes_cpy=(nbytes>FILE_NAME_SIZE ? FILE_NAME_SIZE : nbytes);
-  memcpy(buf,dentry_test.file_name,bytes_cpy);
+  uint8_t temp[33] = {'\0'};
+  while(dentry_test.file_name[i] != '\0' && i < 32){
+    temp[i] = dentry_test.file_name[i];
+    i++;
+  }temp[i] = '\n';
+  memcpy(buf,temp,bytes_cpy+1);
+  //while(((uint8_t*)(buf))[i] != '\0'){
+    //i++;
+  //}((uint8_t*)(buf))[i] != '\n';
 
   //increment dir_index
   dir_index++;
@@ -262,6 +270,7 @@ int dir_write (int32_t fd, const void* buf, int32_t nbytes){
 int dir_open (const uint8_t* filename){
     //return open(filename);
     //uncomment this if you want to test in kernel space
+    dir_index=0;
     return 0;
 }
 
@@ -277,6 +286,7 @@ int dir_open (const uint8_t* filename){
  */
 int dir_close (int32_t fd){
   //printf("Enter dir_close!\n");
+    dir_index=0;
     return 0;
 }
 

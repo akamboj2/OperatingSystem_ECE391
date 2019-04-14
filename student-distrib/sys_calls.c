@@ -19,7 +19,7 @@ static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&termi
 int32_t curr_process = 0;
 
 pcb_t * getPCB(int32_t curr){
-    return (pcb_t*)(_8MB - (curr_process)*_8KB);
+    return (pcb_t*)(_8MB - (curr)*_8KB);
 }
 
 
@@ -33,8 +33,9 @@ int32_t halt (uint8_t status){
   //close files in fd
   int i;
   cli();
-  pcb_t* pcb_to_be_halted = getPCB(curr_process);
-  pcb_t* pcb_parent = getPCB(curr_process-1);
+  curr_process--;
+  pcb_t* pcb_to_be_halted = getPCB(curr_process+1);
+  pcb_t* pcb_parent = getPCB(curr_process-1+1);
   //correct file array. this will close any files opened by the process
   for(i=0; i<8; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
@@ -43,11 +44,16 @@ int32_t halt (uint8_t status){
   }
 
   //restore parent paging
-  curr_process--;
-  pageDirectory[_4B] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
+
+  pageDirectory[_4B] = (_8MB + ((curr_process-1)*_4MB)) | MAP_MASK;
+
+  //flush tlb
+  cli();
+  asm volatile ("MOVL %CR3, %eax;");
+  asm volatile ("MOVL %eax, %CR3;");
+  sti();
 
   tss.esp0 = pcb_to_be_halted->esp0;
-  printf("\n%x\n", tss.esp0);
 
   sti();
 
@@ -141,7 +147,7 @@ int32_t execute (const uint8_t* command){
     pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
   }
   else pcb->parent_task = NULL;
-  curr_process++;
+
 
   pcb->process_num = curr_process;
   pcb->eip = *eip;
@@ -160,13 +166,15 @@ int32_t execute (const uint8_t* command){
   //Context Switch
   tss.ss0 = KERNEL_DS;
   pcb->esp0 = tss.esp0;
-  tss.esp0 = _8MB - (curr_process-1)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
+  tss.esp0 = _8MB - (curr_process)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
+
+  curr_process++;
 
   //for eip argument, push eip found above
 
   context_switch((uint32_t*)*eip);
 
-  asm volatile ("iret;");
+  //asm volatile ("iret;");
 
   return 0;
 }

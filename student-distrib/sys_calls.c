@@ -389,7 +389,8 @@ int32_t vidmap (uint8_t** screen_start){
   //set page table to correct physical address
   pgTbl_vidMem[0]= VIDEO | vid_page;
 
-
+  //set the global variable user_vid_mem (virtual address mapped to same phsyical video memory)
+  //you only need to set it once (same for all processes)
   if (user_vid_mem==0){
     user_vid_mem = ((int32_t)pgTbl_vidMem & VID_MASK) | USER_VID_ADDR;
   }

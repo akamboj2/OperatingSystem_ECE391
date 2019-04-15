@@ -85,27 +85,27 @@ int rtc_write(int32_t fd, const void* buf, int32_t nbytes){
     }
     int32_t freq =*(int32_t*)(buf);
     uint32_t rate;
-    if(freq == 1024)
-      rate = 0x06;
-    else if(freq == 512)
-      rate = 0x07;
-    else if(freq == 256)
-      rate = 0x08;
-    else if(freq == 128)
-      rate = 0x09;
-    else if(freq == 64)
-      rate = 0x0A;
-    else if(freq == 32)
-      rate = 0x0B;
-    else if(freq == 16)
-      rate = 0x0C;
-      else if(freq == 8)
-        rate = 0x0D;
-        else if(freq == 4)
-          rate = 0x0E;
-          else if(freq == 2)
-            rate = 0x0F;
-            else return -1;
+    if(freq == F_1024)
+      rate = R_1;
+    else if(freq == F_512)
+      rate = R_2;
+    else if(freq == F_256)
+      rate = R_3;
+    else if(freq == F_128)
+      rate = R_4;
+    else if(freq == F_64)
+      rate = R_5;
+    else if(freq == F_32)
+      rate = R_6;
+    else if(freq == F_16)
+      rate = R_7;
+    else if(freq == F_8)
+      rate = R_8;
+    else if(freq == F_4)
+      rate = R_9;
+    else if(freq == F_2)
+      rate = R_10;
+    else return -1;
 
     //rate &= 0x0F;
     if (rate >= 15 || rate <= 2)  //ensures the rate is within the bounds

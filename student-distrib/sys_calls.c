@@ -17,6 +17,7 @@ static ftable stdin_table = {&terminal_read,&stdin_write,&terminal_open,&termina
 static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
 
 int32_t curr_process = 0;
+int32_t user_vid_mem=0;
 
 pcb_t * getPCB(int32_t curr){
     return (pcb_t*)(_8MB - (curr)*_8KB);
@@ -35,7 +36,7 @@ int32_t halt (uint8_t status){
   cli();
   curr_process--;
   pcb_t* pcb_to_be_halted = getPCB(curr_process+1);
-  pcb_t* pcb_parent = getPCB(curr_process-1+1);
+  //pcb_t* pcb_parent = getPCB(curr_process-1+1);
   //correct file array. this will close any files opened by the process
   for(i=0; i<8; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
@@ -135,7 +136,7 @@ int32_t execute (const uint8_t* command){
   //load file into program page
   int32_t nbytes = file_size(temp.inode_num);
 
-
+  //copies data from executable file to virtual memory starting at PROG_LOAD_ADDR
   if(read_data(temp.inode_num, 0, (uint8_t *)PROG_LOAD_ADDR, nbytes) == -1)
     return -1;
 
@@ -315,12 +316,37 @@ int32_t getargs (uint8_t* buf, int32_t nbytes){
 }
 
 /*vidmap
- * Description: None
- * Inputs: None
+ * Description: set user's pointer to point to a page in virtual memory that points
+              to the actual video memory in the page table
+ * Inputs: pointer to pointer of where vid mem should be
  * Outputs/Return Values: Returns 0 on succes, -1 on failure
  * Side Effects: none
  */
 int32_t vidmap (uint8_t** screen_start){
+
+  //first check if valid pointer (not null and within current process memory)
+  uint32_t prog_start=_128MB, prog_end= USER_VID_ADDR;
+  if (screen_start==NULL || (int32_t)screen_start<prog_start || (int32_t)screen_start>=prog_end){
+    printf("Invalid pointer address 0x%x.\n",screen_start);
+    return -1;
+  }
+
+  int32_t vid_page= 7; //set bits: present (bit# 0), r/w (bit# 1) and user (bit#2)
+
+  //set page directory to correct physical address
+  //below this should be the index USER_VID_ADDR/_4MB = 33
+  pageDirectory[USER_VID_ADDR/_4MB]= (int32_t)pgTbl_vidMem | vid_page; //directory bits should be same as page's
+
+  //set page table to correct physical address
+  pgTbl_vidMem[0]= VIDEO | vid_page;
+
+
+  if (user_vid_mem==0){
+    user_vid_mem = ((int32_t)pgTbl_vidMem & 0xFFC00000) | USER_VID_ADDR;
+  }
+
+  *screen_start= (uint8_t*)user_vid_mem;
+
   return 0;
 }
 

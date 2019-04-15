@@ -21,7 +21,7 @@ void paging_init() {
 
     for(i = 0; i < PAGE_TABLE_SIZE; i++){
         pageTable[i] = 0; //(i * 4096 ) | 2;
-        pageDirectory[i] = 0x00000002;
+        pageDirectory[i] = 0x00000002; //make all page directory read/write
     }
 
     //don't need to mask and add bc the bottom bits should be zero if aligned correctly (and it must be aligned correctly to work)

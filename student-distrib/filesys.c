@@ -86,7 +86,7 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
 
 
      int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
-     if (offset>file_length){ return -1; }
+     if (offset>file_length){ return 0; }
 
      int skip_dbs=offset/MEM_SIZE_4kB; //if your offset is more than 4kb u have to know which data blcok to go to
      int offset_indb=offset % MEM_SIZE_4kB; //how far into the block to offset before beginning to read
@@ -149,7 +149,9 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
   }
   //printf("reading file\n");
   //now read the file
-  return read_data(cur_pcb->file_array[fd].inode, cur_pcb->file_array[fd].f_pos, buf, nbytes);
+  int n= read_data(cur_pcb->file_array[fd].inode, cur_pcb->file_array[fd].f_pos, buf, nbytes);
+  cur_pcb->file_array[fd].f_pos+=n;
+  return n;
 }
 
 /*

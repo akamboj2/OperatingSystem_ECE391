@@ -23,7 +23,7 @@ void set_cursors(int pos_x, int pos_y);
 void update_cursor(int x, int y);
 
 int32_t print_withoutnull(int8_t *buffer, int nbytes);
-int32_t putfile(int8_t* s);
+int32_t putfile(int8_t* s, uint32_t l);
 
 
 void* memset(void* s, int32_t c, uint32_t n);

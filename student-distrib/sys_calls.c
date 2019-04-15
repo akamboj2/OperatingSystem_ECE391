@@ -7,10 +7,12 @@
 #include "paging.h"
 #include "x86_desc.h"
 
+//basic file tables
 static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
 static ftable dir_table = {&dir_read, &dir_write, &dir_open, &dir_close};
 static ftable rtc_table = {&rtc_read, &rtc_write, &rtc_open, &rtc_close};
 
+//first two file structs in the file array
 int32_t stdin_write(int32_t a, const void* b, int32_t c){return 0;};
 int32_t stdout_read(int32_t a,void* b,int32_t c){return 0;};
 static ftable stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_close};
@@ -19,6 +21,12 @@ static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&termi
 int32_t curr_process = 0;
 int32_t user_vid_mem=0;
 
+/*getPCB
+ * Description: Gets curr process' pcb
+ * Inputs: number of curr process
+ * Outputs/Return Values: return pointer to curr process' pcb
+ * Side Effects: none
+ */
 pcb_t * getPCB(int32_t curr){
     return (pcb_t*)(_8MB - (curr)*_8KB);
 }
@@ -38,7 +46,7 @@ int32_t halt (uint8_t status){
   pcb_t* pcb_to_be_halted = getPCB(curr_process+1);
   //pcb_t* pcb_parent = getPCB(curr_process-1+1);
   //correct file array. this will close any files opened by the process
-  for(i=0; i<8; i++){
+  for(i=0; i<MAX_OPEN_FILES; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
           pcb_to_be_halted->file_array[i].fops_table->close(i);
       pcb_to_be_halted->file_array[i].flags = 0;
@@ -49,7 +57,6 @@ int32_t halt (uint8_t status){
   }
 
   //restore parent paging
-
   pageDirectory[_4B] = (_8MB + ((curr_process-1)*_4MB)) | MAP_MASK;
 
   //flush tlb
@@ -112,11 +119,12 @@ int32_t execute (const uint8_t* command){
   //PCB initialization
   pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
 
+  //skips leading spcaces before args
   while(command[i] == ' ') {
     i++;
   }
 
-  //uint8_t* argBuffer = pcb->args;
+  //writes args into a buffer in the pcb struct
   int j = 0;
   while(command[i] != '\0') {
     pcb->args[j] = command[i];
@@ -126,7 +134,6 @@ int32_t execute (const uint8_t* command){
   }
 
   //ensure that the file actually exists
-
   dentry_t temp;
   if(read_dentry_by_name(filename, &temp) == -1)
     return -1;
@@ -135,7 +142,6 @@ int32_t execute (const uint8_t* command){
     args_flag = 1;
 
   //read data to check if executable and to find point to start executing at
-
   read_data(temp.inode_num, 0, data, _4B);
 
   //check if file is a executable
@@ -162,14 +168,12 @@ int32_t execute (const uint8_t* command){
     return -1;
 
 
-
-
   if(curr_process != 0){
     pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
   }
   else pcb->parent_task = NULL;
 
-
+  //Set up the PCB
   pcb->process_num = curr_process;
   pcb->eip = *eip;
   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb->ebp));
@@ -182,9 +186,9 @@ int32_t execute (const uint8_t* command){
   pcb->file_array[1].f_pos = 0;
   pcb->file_array[0].flags = FD_FLAG_PRESENT;
   pcb->file_array[1].flags = FD_FLAG_PRESENT;
-  pcb->file_arr_size = 2;
+  pcb->file_arr_size = STDI_O;
 
-  for(k = 2; k < MAX_OPEN_FILES; k++){
+  for(k = STDI_O; k < MAX_OPEN_FILES; k++){
     pcb->file_array[k].flags = 0;
   }
 
@@ -210,9 +214,9 @@ int32_t execute (const uint8_t* command){
 
 
 /*read
- * Description: None
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
+ * Description: Reads file into buf
+ * Inputs: file number, buf to read into, and num bytes to read
+ * Outputs/Return Values: Returns position in file
  * Side Effects: none
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
@@ -237,9 +241,9 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 }
 
 /*write
- * Description: None
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
+ * Description: Writes data in buf to screen
+ * Inputs: file number, buf with file data, num bytes to write
+ * Outputs/Return Values: position in file
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
@@ -250,6 +254,7 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes){
   if(cur_pcb->file_array[fd].flags & FD_FLAG_FILE)
     return -1;
 
+  //writes data from buffer to termianl
   int32_t position = cur_pcb->file_array[fd].fops_table->write(fd, buf, nbytes);
 
   return position;
@@ -274,8 +279,8 @@ int32_t open (const uint8_t* filename){
   }
   //printf("in open\n");
   //now find empty entry in file_array
-  int fd = 2; //this is loop counter and also holds empty index in file_array
-  for(fd = 2;fd < MAX_OPEN_FILES;fd++){
+  int fd = STDI_O; //this is loop counter and also holds empty index in file_array
+  for(fd = STDI_O;fd < MAX_OPEN_FILES;fd++){
     if (!(FD_FLAG_PRESENT & cur_pcb->file_array[fd].flags)){ //if it is not present
       cur_pcb->file_array[fd].flags=FD_FLAG_PRESENT;
       break;
@@ -322,7 +327,7 @@ int32_t open (const uint8_t* filename){
 int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   pcb_t* cur_pcb=getPCB(curr_process);
-  int first_fd_ind = 2; //less than this is an invalid descriptor
+  int first_fd_ind = STDI_O; //less than this is an invalid descriptor
   if ((fd < first_fd_ind || fd >= MAX_OPEN_FILES) || cur_pcb->file_array[fd].flags == 0){
     //printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
@@ -335,9 +340,9 @@ int32_t close (int32_t fd){
 }
 
 /*getargs
- * Description: None
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
+ * Description: Gets the args of the curr process
+ * Inputs: buf to write into and number of bytes to write
+ * Outputs/Return Values: Return 0
  * Side Effects: none
  */
 int32_t getargs (uint8_t* buf, int32_t nbytes){
@@ -353,7 +358,7 @@ int32_t getargs (uint8_t* buf, int32_t nbytes){
    if(character > (nbytes - 1))
      return -1;
 
-   memcpy(buf, pcb->args, nbytes);
+   memcpy(buf, pcb->args, nbytes);    //copies args into buffer
 
    return 0;
 
@@ -375,7 +380,7 @@ int32_t vidmap (uint8_t** screen_start){
     return -1;
   }
 
-  int32_t vid_page= 7; //set bits: present (bit# 0), r/w (bit# 1) and user (bit#2)
+  int32_t vid_page= VID_PAGE; //set bits: present (bit# 0), r/w (bit# 1) and user (bit#2)
 
   //set page directory to correct physical address
   //below this should be the index USER_VID_ADDR/_4MB = 33
@@ -386,7 +391,7 @@ int32_t vidmap (uint8_t** screen_start){
 
 
   if (user_vid_mem==0){
-    user_vid_mem = ((int32_t)pgTbl_vidMem & 0xFFC00000) | USER_VID_ADDR;
+    user_vid_mem = ((int32_t)pgTbl_vidMem & VID_MASK) | USER_VID_ADDR;
   }
 
   *screen_start= (uint8_t*)user_vid_mem;

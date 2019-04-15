@@ -92,17 +92,16 @@ int32_t print_withoutnull(int8_t *buffer, int nbytes){
     //buffer[i] = '\0';
   }
   temp_buf[nbytes] = '\0';
-  return puts(temp_buf);
+  return putfile(temp_buf, nbytes+1);
 }
 
 /* int32_t puts(int8_t* s);
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
  *    Function: Output a string to the console */
-int32_t putfile(int8_t* s) {
-    char eof=26;
+int32_t putfile(int8_t* s, uint32_t length) {
     register int32_t index = 0;
-    while (s[index] != eof) {
+    while (index <  length) {
         if(s[index] != '\0')
           putc(s[index]);
         index++;

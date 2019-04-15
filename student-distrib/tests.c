@@ -224,7 +224,7 @@ void read_exec(){
 	file_open((uint8_t*)"fish");
 	file_read(0,buf,CONTENT_BUFFER);
 	file_close(0);
-	putfile((int8_t*)buf);
+	putfile((int8_t*)buf, CONTENT_BUFFER);
 
 }
 

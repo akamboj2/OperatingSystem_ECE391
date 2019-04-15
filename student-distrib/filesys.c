@@ -241,7 +241,11 @@ int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
     temp[i] = dentry_test.file_name[i];
     i++;
   }temp[i] = '\n';*/
-  memcpy(buf,dentry_test.file_name/*temp*/,bytes_cpy+1);
+  for(i = 0; i < bytes_cpy; i++){
+    if(dentry_test.file_name[i] == '\0')
+      break;
+  }
+  memcpy(buf,dentry_test.file_name/*temp*/,i+1);
   //while(((uint8_t*)(buf))[i] != '\0'){
     //i++;
   //}((uint8_t*)(buf))[i] != '\n';
@@ -249,7 +253,7 @@ int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
   //increment dir_index
   dir_index++;
   //printf("  Here now dir_indx is %d\n",dir_index);
-  return bytes_cpy;
+  return i;
 }
 
 /*

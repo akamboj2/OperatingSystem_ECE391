@@ -12,6 +12,7 @@
 #define FD_FLAG_RTC 8
 #define MAX_OPEN_FILES 8
 #define _ONE_STACK_ENTRY 0x04
+#define MAX_ARGS 127
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command);
@@ -64,7 +65,7 @@ struct pcb_t{
   uint32_t esp;
   uint32_t ebp;
   uint32_t esp0;
-  uint8_t args[127];
+  uint8_t args[MAX_ARGS];
 };
 
 pcb_t * getPCB(int32_t curr);

@@ -32,7 +32,7 @@ pcb_t * getPCB(int32_t curr){
  */
 int32_t halt (uint8_t status){
   //close files in fd
-  int i;
+  int i, j;
   cli();
   curr_process--;
   pcb_t* pcb_to_be_halted = getPCB(curr_process+1);
@@ -42,6 +42,10 @@ int32_t halt (uint8_t status){
       if(pcb_to_be_halted->file_array[i].flags != 0)
           pcb_to_be_halted->file_array[i].fops_table->close(i);
       pcb_to_be_halted->file_array[i].flags = 0;
+  }
+
+  for(j = 0; j < MAX_ARGS; j++){
+    pcb_to_be_halted->args[j] = '\0';
   }
 
   //restore parent paging
@@ -323,6 +327,7 @@ int32_t close (int32_t fd){
     //printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }
+  cur_pcb->file_arr_size--;
   cur_pcb->file_array[fd].flags=0;
 //  printf("    fd:%d,flags now:%d\n",fd,cur_pcb->file_array[fd].flags);
 

@@ -108,7 +108,7 @@ void keyboard_handler(){
         printf("%c", print_char);
     }
   }*/
-  else if(c == BACKSPACE && keyboard_buffer_index>=0){		//adds backspace by overwriting previous char with a space
+  else if(c == BACKSPACE && keyboard_buffer_index>0){		//adds backspace by overwriting previous char with a space
       set_cursors(get_screenx()-1, get_screeny());
       printf("%c", ' ');
       set_cursors(get_screenx()-1, get_screeny());

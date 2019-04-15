@@ -64,6 +64,7 @@ struct pcb_t{
   uint32_t esp;
   uint32_t ebp;
   uint32_t esp0;
+  uint8_t args[127];
 };
 
 pcb_t * getPCB(int32_t curr);

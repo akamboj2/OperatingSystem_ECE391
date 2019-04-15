@@ -69,11 +69,16 @@ pushl %ecx
 pushl %ebx
 
 cmpl $1,%eax
-jl invalid_sys_call
+jl inval2
 cmpl $10,%eax
-jg invalid_sys_call
+jg inval2
 
 call *sys_call_table(,%eax,4) #multiply by 4 bc each address is 4 bytes
+
+jmp invalid_sys_call
+
+inval2:
+movl $-1, %eax
 
 invalid_sys_call:
 popl %ebx

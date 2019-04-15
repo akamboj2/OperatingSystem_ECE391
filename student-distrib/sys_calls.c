@@ -81,6 +81,7 @@ int32_t halt (uint8_t status){
 int32_t execute (const uint8_t* command){
 //  printf("In execute!\n");
   int i = 0;
+  int k = 0;
   int args_flag = 0;
   //command = "fish";
   //printf("%c", *command);
@@ -101,6 +102,22 @@ int32_t execute (const uint8_t* command){
     //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;
+  }
+
+  //PCB initialization
+  pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
+
+  while(command[i] == ' ') {
+    i++;
+  }
+
+  uint8_t* argBuffer = pcb->args;
+  int j = 0;
+  while(command[i] != '\0') {
+    pcb->args[j] = command[i];
+    //printf("%c",argBuffer[j]);
+    i++;
+    j++;
   }
 
   //ensure that the file actually exists
@@ -141,8 +158,7 @@ int32_t execute (const uint8_t* command){
 
 
 
-  //PCB initialization
-  pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
+
   if(curr_process != 0){
     pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
   }
@@ -162,6 +178,14 @@ int32_t execute (const uint8_t* command){
   pcb->file_array[0].flags = FD_FLAG_PRESENT;
   pcb->file_array[1].flags = FD_FLAG_PRESENT;
   pcb->file_arr_size = 2;
+
+  for(k = 2; k < MAX_OPEN_FILES; k++){
+    pcb->file_array[k].flags = 0;
+  }
+
+
+
+
 
   //Context Switch
   tss.ss0 = KERNEL_DS;
@@ -188,7 +212,7 @@ int32_t execute (const uint8_t* command){
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
   pcb_t* cur_pcb=getPCB(curr_process);
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 1 || cur_pcb->file_array[fd].flags == 0)
     return -1;
   //printf("IN READ YAY!\n");
   // int i =0;
@@ -215,7 +239,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
   pcb_t* cur_pcb=getPCB(curr_process);
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0)
     return -1;
 
   if(cur_pcb->file_array[fd].flags & FD_FLAG_FILE)
@@ -294,8 +318,8 @@ int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   pcb_t* cur_pcb=getPCB(curr_process);
   int first_fd_ind = 2; //less than this is an invalid descriptor
-  if (fd < first_fd_ind || fd >= MAX_OPEN_FILES){
-    printf("fd=%d is invalid file_array index to close\n",fd);
+  if ((fd < first_fd_ind || fd >= MAX_OPEN_FILES) || cur_pcb->file_array[fd].flags == 0){
+    //printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }
   cur_pcb->file_array[fd].flags=0;
@@ -311,7 +335,22 @@ int32_t close (int32_t fd){
  * Side Effects: none
  */
 int32_t getargs (uint8_t* buf, int32_t nbytes){
-  return 0;
+  pcb_t* pcb = getPCB(curr_process);
+   if(pcb->args == NULL)
+     return -1;
+
+   uint32_t character = 0;
+   while(pcb->args[character] != NULL) {
+     character++;
+   }
+
+   if(character > (nbytes - 1))
+     return -1;
+
+   memcpy(buf, pcb->args, nbytes);
+
+   return 0;
+
 }
 
 /*vidmap

@@ -335,8 +335,8 @@ int32_t close (int32_t fd){
 }
 
 /*getargs
- * Description: None
- * Inputs: None
+ * Description: reads in arguments passed to syscalls
+ * Inputs: buf- buffer of file name and arguments, nbytes--number of bytes to read
  * Outputs/Return Values: Returns 0 on succes, -1 on failure
  * Side Effects: none
  */
@@ -384,7 +384,8 @@ int32_t vidmap (uint8_t** screen_start){
   //set page table to correct physical address
   pgTbl_vidMem[0]= VIDEO | vid_page;
 
-
+  //set the global variable user_vid_mem (virtual address mapped to same phsyical video memory)
+  //you only need to set it once (same for all processes)
   if (user_vid_mem==0){
     user_vid_mem = ((int32_t)pgTbl_vidMem & 0xFFC00000) | USER_VID_ADDR;
   }

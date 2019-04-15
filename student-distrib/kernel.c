@@ -197,7 +197,7 @@ void entry(unsigned long magic, unsigned long addr) {
 	prev = inb(RTC_RW);
 	outb(REG_A, RTC_REG);
 	outb(RATE_RTC | (prev&0xf0), RTC_RW);*/
-  rtc_open(0,NULL,0);
+  rtc_open(0);
   //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
 
@@ -213,7 +213,7 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-    execute("shell");
+    execute((const uint8_t*)("shell"));
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }

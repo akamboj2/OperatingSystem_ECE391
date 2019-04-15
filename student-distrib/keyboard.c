@@ -108,7 +108,7 @@ void keyboard_handler(){
         printf("%c", print_char);
     }
   }*/
-  else if(c == BACKSPACE && keyboard_buffer_index>=0){		//adds backspace by overwriting previous char with a space
+  else if(c == BACKSPACE && keyboard_buffer_index>0){		//adds backspace by overwriting previous char with a space
       set_cursors(get_screenx()-1, get_screeny());
       printf("%c", ' ');
       set_cursors(get_screenx()-1, get_screeny());
@@ -174,7 +174,8 @@ int32_t terminal_close(int32_t fd){
  *					defined buffer
  * Side Effects: none
  */
-int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
+int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
+	unsigned char* buf = (unsigned char*) buf_t;
 	int i;
 	int index = 0;
 	if(nbytes < 0)
@@ -202,12 +203,14 @@ int32_t terminal_read(int32_t fd, unsigned char* buf, int32_t nbytes){
  *					Return -1 if copy unsuccessful.
  * Side Effects: clears prior state of video memory
  */
-int32_t terminal_write(int32_t fd, unsigned char* buf, int32_t nbytes){
+int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
+	unsigned char* buf = (unsigned char*) buf_t;
 	if(buf == NULL || nbytes < 0)
 		return -1;
 	if(nbytes == 0)
 		return 0;
 	//if(nbytes < 0 || nbytes >= sizeof(buf)) //less than or equal to account for length the null char adds
 		//return -1;
+		//printf('\n');
 	return print_withoutnull((int8_t*)buf, nbytes);
 }

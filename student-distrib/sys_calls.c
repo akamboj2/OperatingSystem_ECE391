@@ -16,46 +16,72 @@ int32_t stdout_read(int32_t a,void* b,int32_t c){return 0;};
 static ftable stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_close};
 static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
 
-curr_process = 0;
+int32_t curr_process = 0;
 
 pcb_t * getPCB(int32_t curr){
-    return _8MB - (curr_process)*_8KB;
+    return (pcb_t*)(_8MB - (curr)*_8KB);
 }
 
 
 /*halt
- * Description: None
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
- * Side Effects: none
+ * Description: jump to execute's return for the parent function
+ * Inputs: return value to be transmitted to execute via eax register
+ * Outputs/Return Values: Returns 0 (never actually returns! jumps to exectute's return)
+ * Side Effects: writes to eax, esp, and ebp
  */
 int32_t halt (uint8_t status){
   //close files in fd
-  //restore parent data (esp and ebp for parent?)
+  int i;
+  cli();
+  curr_process--;
+  pcb_t* pcb_to_be_halted = getPCB(curr_process+1);
+  pcb_t* pcb_parent = getPCB(curr_process-1+1);
+  //correct file array. this will close any files opened by the process
+  for(i=0; i<8; i++){
+      if(pcb_to_be_halted->file_array[i].flags != 0)
+          pcb_to_be_halted->file_array[i].fops_table->close(i);
+      pcb_to_be_halted->file_array[i].flags = 0;
+  }
 
   //restore parent paging
-  curr_process--;
-  pageDirectory[32] = ((2*_4MB) + (curr_process*_4MB)) | MAP_MASK;
 
-  tss.esp0 = 2*_4MB - (curr_process)*2*PAGE_MEM_SIZE - 4;
+  pageDirectory[_4B] = (_8MB + ((curr_process-1)*_4MB)) | MAP_MASK;
 
-  //to mimic a return in exec, store ebp into pcb before iret. Then take ebp in pcb and load into %ebp register. Then iret
+  //flush tlb
+  cli();
+  asm volatile ("MOVL %CR3, %eax;");
+  asm volatile ("MOVL %eax, %CR3;");
+  sti();
 
+  tss.esp0 = pcb_to_be_halted->esp0;
 
-  //printf("IN HALT!\n");
+  sti();
+
+//prepare for jump to execute by finding the correct esp value in parent pcb
+  asm volatile(
+    ""
+    "MOVL %0, %%eax;"
+    "MOVL %1, %%esp;"
+    "MOVL %2, %%ebp;"
+    "JMP reverse_system_call;"
+    : : "r" ((uint32_t)status), "r" (pcb_to_be_halted->esp), "r" (pcb_to_be_halted->ebp) : "eax"
+  );
+  //paste this back into eax: (uint32_t)status)
   return 0;
 }
 
 /*execute
  * Description: Initialize file_array to have all flags=0 (indicate not present), and set fd=0 to std out
-  and fd=1 to stdin, ---AND INITIALIZEW FILE_ARR_SIZE TO 2!
- * Inputs: None
- * Outputs/Return Values: Returns 0 on succes, -1 on failure
- * Side Effects: none
+  and fd=1 to stdin, ---AND INITIALIZE FILE_ARR_SIZE TO 2!
+ * Inputs: buffer which represents the command the user would like to execute
+ * Outputs/Return Values: Returns 0 on succes, -1 on failure, 256 if process creates a fault
+ * Side Effects: writes to paging, kerel stack, and jumps to a place in memory based on entry
+ * point in file about to be executed.
  */
 int32_t execute (const uint8_t* command){
 //  printf("In execute!\n");
   int i = 0;
+  int k = 0;
   int args_flag = 0;
   //command = "fish";
   //printf("%c", *command);
@@ -67,16 +93,34 @@ int32_t execute (const uint8_t* command){
   if(curr_process == 6){
     return -1;
   }
-  uint8_t filename[32] = {'\0'};
-  uint8_t data[32] = {'\0'};
+  uint8_t filename[_4B] = {'\0'};
+  uint8_t data[_4B] = {'\0'};
 
-  //printf(temp.inode_num);
+  //parse first argument
 
-  while(command[i] != '\0' && command[i] != ' ' && i<32){
+  while(command[i] != '\0' && command[i] != ' ' && i<_4B){
     //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;
   }
+
+  //PCB initialization
+  pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
+
+  while(command[i] == ' ') {
+    i++;
+  }
+
+  uint8_t* argBuffer = pcb->args;
+  int j = 0;
+  while(command[i] != '\0') {
+    pcb->args[j] = command[i];
+    //printf("%c",argBuffer[j]);
+    i++;
+    j++;
+  }
+
+  //ensure that the file actually exists
 
   dentry_t temp;
   if(read_dentry_by_name(filename, &temp) == -1)
@@ -85,14 +129,17 @@ int32_t execute (const uint8_t* command){
   if(command[i] != ' ')
     args_flag = 1;
 
-  read_data(temp.inode_num, 0, data, 32);
-  //printf("r_d: %d\n", x);
+  //read data to check if executable and to find point to start executing at
 
-  if(data[0] != 127 || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
+  read_data(temp.inode_num, 0, data, _4B);
+
+  //check if file is a executable
+  if(data[0] != DEL || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
     return -1;
 
   //Paging
-  pageDirectory[32] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
+  pageDirectory[_4B] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
+  //4B bc it's 32th entry in page directory (director is size 4MB) 32*4 =128MB address
 
   //flush tlb
   cli();
@@ -100,30 +147,28 @@ int32_t execute (const uint8_t* command){
   asm volatile ("MOVL %eax, %CR3;");
   sti();
 
-  uint32_t * eip = (int32_t*)&(data[24]); //eip holds ptr to 128MB
-  //printf("%d\n", eip);
+  uint32_t * eip = (uint32_t*)&(data[24]); //eip holds ptr to 128MB
 
-  //printf("%d", temp->inode_num);
   //load file into program page
   int32_t nbytes = file_size(temp.inode_num);
-  //printf("%d", nbytes);
-  //FIX BEFORE 6 PM PLS
-  if(read_data(temp.inode_num, 0, PROG_LOAD_ADDR, nbytes) == -1)
+
+
+  if(read_data(temp.inode_num, 0, (uint8_t *)PROG_LOAD_ADDR, nbytes) == -1)
     return -1;
 
 
 
-  //PCB code
-  pcb_t * pcb = _8MB - (curr_process+1)*_8KB;
+
   if(curr_process != 0){
-    pcb->parent_task =  _8MB - (curr_process)*_8KB;
+    pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
   }
   else pcb->parent_task = NULL;
-  curr_process++;
+
 
   pcb->process_num = curr_process;
   pcb->eip = *eip;
-
+  asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb->ebp));
+  asm volatile("MOVL %%esp, %%eax;" : "=a" (pcb->esp));
   pcb->file_array[0].fops_table = &stdin_table;
   pcb->file_array[1].fops_table = &stdout_table;
   pcb->file_array[0].inode = -1;
@@ -134,28 +179,26 @@ int32_t execute (const uint8_t* command){
   pcb->file_array[1].flags = FD_FLAG_PRESENT;
   pcb->file_arr_size = 2;
 
+  for(k = 2; k < MAX_OPEN_FILES; k++){
+    pcb->file_array[k].flags = 0;
+  }
+
+
+
+
+
   //Context Switch
   tss.ss0 = KERNEL_DS;
-  tss.esp0 = _8MB - (curr_process-1)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
-  //printf("%x",get_eip());
-  //for eip argument, push eip found above
-  //cli();
-  context_switch(*eip);
-  //sti();
-  /*asm volatile ("mov $35, %ax;");
-  asm volatile ("mov %ax, %ds;");
-  asm volatile ("mov %ax, %es;");
-  asm volatile ("mov %ax, %fs;");
-  asm volatile ("mov %ax, %gs;");
+  pcb->esp0 = tss.esp0;
+  tss.esp0 = _8MB - (curr_process)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
 
-  asm volatile ("movl %esp, %eax;");
-  asm volatile ("pushl $35;");  //#ds
-  asm volatile ("pushl (0x8400000-0x4);"); //#esp points to 132MB minus one block up
-  asm volatile ("pushfl;");  //#push eflags
-  asm volatile ("pushl $27;");  //#cs
-  asm volatile ("pushl get_eip;"); //#push bits[24:27]
-  printf("%x\n", get_eip());
-  asm volatile ("iret;");*/
+  curr_process++;
+
+  //for eip argument, push eip found above
+
+  context_switch((uint32_t*)*eip);
+
+  //asm volatile ("iret;");
 
   return 0;
 }
@@ -169,7 +212,7 @@ int32_t execute (const uint8_t* command){
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
   pcb_t* cur_pcb=getPCB(curr_process);
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 1 || cur_pcb->file_array[fd].flags == 0)
     return -1;
   //printf("IN READ YAY!\n");
   // int i =0;
@@ -196,7 +239,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
   pcb_t* cur_pcb=getPCB(curr_process);
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0)
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0)
     return -1;
 
   if(cur_pcb->file_array[fd].flags & FD_FLAG_FILE)
@@ -275,8 +318,8 @@ int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
   pcb_t* cur_pcb=getPCB(curr_process);
   int first_fd_ind = 2; //less than this is an invalid descriptor
-  if (fd < first_fd_ind || fd >= MAX_OPEN_FILES){
-    printf("fd=%d is invalid file_array index to close\n",fd);
+  if ((fd < first_fd_ind || fd >= MAX_OPEN_FILES) || cur_pcb->file_array[fd].flags == 0){
+    //printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }
   cur_pcb->file_array[fd].flags=0;
@@ -292,7 +335,22 @@ int32_t close (int32_t fd){
  * Side Effects: none
  */
 int32_t getargs (uint8_t* buf, int32_t nbytes){
-  return 0;
+  pcb_t* pcb = getPCB(curr_process);
+   if(pcb->args == NULL)
+     return -1;
+
+   uint32_t character = 0;
+   while(pcb->args[character] != NULL) {
+     character++;
+   }
+
+   if(character > (nbytes - 1))
+     return -1;
+
+   memcpy(buf, pcb->args, nbytes);
+
+   return 0;
+
 }
 
 /*vidmap

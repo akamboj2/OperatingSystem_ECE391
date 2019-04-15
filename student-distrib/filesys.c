@@ -86,7 +86,9 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
 
 
      int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
-     if (offset>file_length){ return -1; }
+     if (offset>file_length){
+       return 0;
+     }
 
      int skip_dbs=offset/MEM_SIZE_4kB; //if your offset is more than 4kb u have to know which data blcok to go to
      int offset_indb=offset % MEM_SIZE_4kB; //how far into the block to offset before beginning to read
@@ -106,7 +108,7 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
      //printf("print by char:\n");
      uint32_t count=0; //for how many bytes are copied
      char* at_db=data_block + (*inode_block)*MEM_SIZE_4kB + offset_indb; //this shoud point to the start of file data (from where we want to read)
-     char eof=26; //end of file character
+     //char eof=26; //end of file character
      //FIX END OF FILE
      while(count < file_length && count<length){           //check if this is actually the end of file character
          //printf("%c",*at_db);
@@ -147,9 +149,12 @@ int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
   if (nbytes==0){
     return 0;
   }
+
+  uint32_t n = read_data(cur_pcb->file_array[fd].inode, cur_pcb->file_array[fd].f_pos, buf, nbytes);
+  cur_pcb->file_array[fd].f_pos += n;
   //printf("reading file\n");
   //now read the file
-  return read_data(cur_pcb->file_array[fd].inode, cur_pcb->file_array[fd].f_pos, buf, nbytes);
+  return n;
 }
 
 /*
@@ -196,7 +201,7 @@ int file_open (const uint8_t* filename){
  */
 int file_close (int32_t fd){
   close(fd);
-    return 0;
+  return 0;
 }
 
 
@@ -214,14 +219,15 @@ int file_close (int32_t fd){
  */
 int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
   dentry_t dentry_test;
+  int i = 0;
   int* num_entries=(int*)filesys_addr;
   int amt_dentrys=*num_entries;
-  static int dir_index=0;
 
   // printf("AMOUNT DIR ENTRIES: %d\n",amt_dentrys);
   // printf("On dir_read call:%d\n",dir_index);
   //already done reading directories then keep returning 0
-  if (dir_index>=amt_dentrys) return 0;
+  if (dir_index>=amt_dentrys)
+    return 0;
 
   if(read_dentry_by_index(dir_index,&dentry_test)){
       return -1; //if reading fails return fail
@@ -229,7 +235,15 @@ int32_t dir_read (int32_t fd, void* buf, int32_t nbytes){
 //  printf("at file: %s\n",dentry_test.file_name);
   //now read the file name into buf
   uint8_t bytes_cpy=(nbytes>FILE_NAME_SIZE ? FILE_NAME_SIZE : nbytes);
-  memcpy(buf,dentry_test.file_name,bytes_cpy);
+  /*uint8_t temp[33] = {'\0'};
+  while(dentry_test.file_name[i] != '\0' && i < 32){
+    temp[i] = dentry_test.file_name[i];
+    i++;
+  }temp[i] = '\n';*/
+  memcpy(buf,dentry_test.file_name/*temp*/,bytes_cpy+1);
+  //while(((uint8_t*)(buf))[i] != '\0'){
+    //i++;
+  //}((uint8_t*)(buf))[i] != '\n';
 
   //increment dir_index
   dir_index++;
@@ -262,6 +276,7 @@ int dir_write (int32_t fd, const void* buf, int32_t nbytes){
 int dir_open (const uint8_t* filename){
     //return open(filename);
     //uncomment this if you want to test in kernel space
+    dir_index=0;
     return 0;
 }
 
@@ -277,6 +292,7 @@ int dir_open (const uint8_t* filename){
  */
 int dir_close (int32_t fd){
   //printf("Enter dir_close!\n");
+    dir_index=0;
     return 0;
 }
 

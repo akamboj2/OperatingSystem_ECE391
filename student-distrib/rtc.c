@@ -36,7 +36,7 @@ void rtc_handler(){
  * OUPUTS: 0
  * SIDE EFFECTS: sets nio_flag to 0, communicates with rtc ports
  */
-int rtc_open(int32_t fd, void* buf, int32_t nbytes){
+int rtc_open(const uint8_t* fd){
     cli();
     nio_flag = 0;
     char prev = inb(RTC_RW);
@@ -53,7 +53,7 @@ int rtc_open(int32_t fd, void* buf, int32_t nbytes){
  * OUTPUTS: 0
  * SIDE EFFECTS: None
  */
-int rtc_close(int32_t fd, void* buf, int32_t nbytes){
+int rtc_close(int32_t fd){
     return 0;
 }
 
@@ -79,7 +79,7 @@ int rtc_read(int32_t fd, void* buf, int32_t nbytes){
  * OUPUTS: return 0
  * SIDE EFFECTS: chnages the frequency of the RTC
  */
-int rtc_write(int rate){
+int rtc_write(int32_t rate, const void* buf, int32_t nbytes){
     rate &= 0x0F;
     if (rate >= 15 || rate <= 2)  //ensures the rate is within the bounds
         return -1;

@@ -3,6 +3,7 @@
 .globl rtc_assembly
 .globl system_calls_assembly
 .globl context_switch
+.globl reverse_system_call
 
 keyboard_assembly:
 pushl %es
@@ -68,11 +69,16 @@ pushl %ecx
 pushl %ebx
 
 cmpl $1,%eax
-jl invalid_sys_call
+jl inval2
 cmpl $10,%eax
-jg invalid_sys_call
+jg inval2
 
 call *sys_call_table(,%eax,4) #multiply by 4 bc each address is 4 bytes
+
+jmp invalid_sys_call
+
+inval2:
+movl $-1, %eax
 
 invalid_sys_call:
 popl %ebx
@@ -89,7 +95,6 @@ iret
 #credit to OSDev
 context_switch:
 #push onto stack for IRET in sys call functions to remove
-#CURRENTLY CAUSING PAGE FAULT
 cli
 movl %eax, %ebx
 
@@ -111,6 +116,9 @@ pushl %ebx #push bits[24:27]
 #sti
 iret
 
+reverse_system_call:
+leave
+ret
 
 sys_call_table:
 .long 0 #sys_calls are from 1-10 so need to exclude zero?

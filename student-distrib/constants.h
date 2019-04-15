@@ -8,8 +8,11 @@
 #define _8MB                    0x800000
 #define _4MB                    0x400000
 #define _8KB                    0x2000
+#define _4B                     0x20
 #define PROG_LOAD_ADDR          0x08048000
-#define MAP_MASK                0x0087
+#define MAP_MASK                0x0087    //shouldn't bit 4 be 1?
+#define DEL                     0x7F
+
                                             //^note this is also pg directory size
 #define VIDEO                   0xB8000     //note: this may already be defined in lib.c
 #define KERNEL_PHYS_ADDR        0x400000    //1048576 = 2^20: 4 MB

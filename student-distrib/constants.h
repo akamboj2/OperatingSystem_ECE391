@@ -12,7 +12,7 @@
 #define PROG_LOAD_ADDR          0x08048000
 #define MAP_MASK                0x0087    //shouldn't bit 4 be 1?
 #define DEL                     0x7F
-
+#define USER_VID_ADDR           0x08400000 //this is just one directory entry after prog load addr
                                             //^note this is also pg directory size
 #define VIDEO                   0xB8000     //note: this may already be defined in lib.c
 #define KERNEL_PHYS_ADDR        0x400000    //1048576 = 2^20: 4 MB

@@ -86,6 +86,7 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
 
 
      int file_length=*inode_block;//the first thing in inode_block is 4B int of length of file in bytes
+
      if (offset>file_length){
        return 0;
      }

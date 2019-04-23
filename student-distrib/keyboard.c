@@ -32,14 +32,22 @@
 #define SPACE 0x39
 #define BACKSPACE 0x0E
 #define ENTER_PRESS 0x1C
+#define _F1 0x3B
+#define _F2 0x3C
+#define _F3 0x3D
 
 int shift_key = FALSE;
 int cap_flag = FALSE;
 int ctrl_key = FALSE;
 int keyboard_buffer_index = 0;
 int enter_flag = 0;
+int curr_terminal = 1;
 
 unsigned char keyboard_buffer[KB_BUF_SIZE] = {'\0'};
+unsigned char keyboard_buffer1[KB_BUF_SIZE] = {'\0'};
+unsigned char keyboard_buffer2[KB_BUF_SIZE] = {'\0'};
+unsigned char keyboard_buffer3[KB_BUF_SIZE] = {'\0'};
+
 
 /*keyboard handler
  *
@@ -86,7 +94,40 @@ void keyboard_handler(){
     set_cursors(0,0);			//reset cursor
     update_cursor(0,0);
   }
-
+	else if(c == _F1 || c == _F2 || c == _F3){
+		int j;
+		unsigned char * kb_ptr;
+		if(curr_terminal == 1)
+			kb_ptr = keyboard_buffer1;
+		else if(curr_terminal == 2)
+			kb_ptr = keyboard_buffer2;
+		else if(curr_terminal == 3)
+			kb_ptr = keyboard_buffer3;
+		if(c == _F1 && curr_terminal != 1){
+			 switch_terminal(curr_terminal, 1); //(from,to)
+			 curr_terminal = 1;
+			 for(j = 0; j < KB_BUF_SIZE; j++){
+				 kb_ptr[KB_BUF_SIZE] = keyboard_buffer[KB_BUF_SIZE];
+				 keyboard_buffer[KB_BUF_SIZE] = keyboard_buffer1[KB_BUF_SIZE];
+			 }
+		}
+		else if(c == _F2 && curr_terminal != 2){
+			switch_terminal(curr_terminal, 2); //(from,to)
+			curr_terminal = 2;
+			for(j = 0; j < KB_BUF_SIZE; j++){
+				kb_ptr[KB_BUF_SIZE] = keyboard_buffer[KB_BUF_SIZE];
+				keyboard_buffer[KB_BUF_SIZE] = keyboard_buffer2[KB_BUF_SIZE];
+			}
+		}
+		else if(c == _F3 && curr_terminal != 3){
+			switch_terminal(curr_terminal, 3); //(from,to)
+			curr_terminal = 3;
+			for(j = 0; j < KB_BUF_SIZE; j++){
+				kb_ptr[KB_BUF_SIZE] = keyboard_buffer[KB_BUF_SIZE];
+				keyboard_buffer[KB_BUF_SIZE] = keyboard_buffer3[KB_BUF_SIZE];
+			}
+		}
+	}
   else if(c == SPACE){	//outputs space
     if(keyboard_buffer_index < KB_BUF_SIZE){
       char print_char = ' ';

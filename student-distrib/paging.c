@@ -14,7 +14,7 @@
 void paging_init() {
 //    int numPages = VIRTUAL_MEMORY_SPACE / PAGE_MEM_SIZE;    //4 MB/4 kB = 4000 kB/4 kb = 1000 pages (4 MB total space, 4kB per page)
     //Specifications of bits 8-0 of pde and pte of a normal Page, the  Kernel Page and the video Page
-    uint32_t page = 0x017;      //000010111
+    uint32_t page = 0x017;      //000010111  //THESE BITS DEFINED IN PAGING.H
     uint32_t kernelPage=0x83;//0x193;  //110010011
     uint32_t videoPage=0x003;   //000000011
     int i;
@@ -26,7 +26,7 @@ void paging_init() {
 
     //don't need to mask and add bc the bottom bits should be zero if aligned correctly (and it must be aligned correctly to work)
     pageDirectory[0] =  (unsigned)pageTable | page;
-    pageDirectory[1] = KERNEL_PHYS_ADDR | kernelPage; //how does processor know this block only has 1 table?--PSE question
+    pageDirectory[1] = KERNEL_PHYS_ADDR | kernelPage; //how does processor know this block only has 1 table?--bc of bit 7 pf kernelpage(set indicates 4 MB)
     pageTable[VIDEO/PAGE_MEM_SIZE] = VIDEO|videoPage; //addes page-table base address (bits 31-12) to videoPage (bits 8-0), (we ignore 11-9)
 
     //xFFFFF000 is used to to only set the 20 MSb of pageDirectory address to top 20 bits in CR3

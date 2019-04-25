@@ -237,8 +237,8 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
 }
 
 /*write
- * Description: None
- * Inputs: None
+ * Description: Calls file's write function really only defined for rtc
+ * Inputs: fild descriptor, buffer of what to write, nbytes of how much to write
  * Outputs/Return Values: Returns 0 on succes, -1 on failure
  * Side Effects: none
  */

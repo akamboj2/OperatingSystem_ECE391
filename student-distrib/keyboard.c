@@ -107,24 +107,24 @@ void keyboard_handler(){
 			 switch_terminal(curr_terminal, 1); //(from,to)
 			 curr_terminal = 1;
 			 for(j = 0; j < KB_BUF_SIZE; j++){
-				 kb_ptr[KB_BUF_SIZE] = keyboard_buffer[KB_BUF_SIZE];
-				 keyboard_buffer[KB_BUF_SIZE] = keyboard_buffer1[KB_BUF_SIZE];
+				 kb_ptr[j] = keyboard_buffer[j];
+				 keyboard_buffer[j] = keyboard_buffer1[j];
 			 }
 		}
 		else if(c == _F2 && curr_terminal != 2){
 			switch_terminal(curr_terminal, 2); //(from,to)
 			curr_terminal = 2;
 			for(j = 0; j < KB_BUF_SIZE; j++){
-				kb_ptr[KB_BUF_SIZE] = keyboard_buffer[KB_BUF_SIZE];
-				keyboard_buffer[KB_BUF_SIZE] = keyboard_buffer2[KB_BUF_SIZE];
+				kb_ptr[j] = keyboard_buffer[j];
+				keyboard_buffer[j] = keyboard_buffer2[j];
 			}
 		}
 		else if(c == _F3 && curr_terminal != 3){
 			switch_terminal(curr_terminal, 3); //(from,to)
 			curr_terminal = 3;
 			for(j = 0; j < KB_BUF_SIZE; j++){
-				kb_ptr[KB_BUF_SIZE] = keyboard_buffer[KB_BUF_SIZE];
-				keyboard_buffer[KB_BUF_SIZE] = keyboard_buffer3[KB_BUF_SIZE];
+				kb_ptr[j] = keyboard_buffer[j];
+				keyboard_buffer[j] = keyboard_buffer3[j];
 			}
 		}
 	}

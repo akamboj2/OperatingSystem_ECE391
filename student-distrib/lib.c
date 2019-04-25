@@ -2,6 +2,7 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "sys_calls.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
@@ -11,9 +12,9 @@
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
-char video_buf1[NUM_ROWS * NUM_COLS];
-char video_buf2[NUM_ROWS * NUM_COLS];
-char video_buf3[NUM_ROWS * NUM_COLS];
+char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
+char video_buf2[NUM_ROWS * NUM_COLS] = {' '};
+char video_buf3[NUM_ROWS * NUM_COLS] = {' '};
 
 int t1_pos[2] = {0,0};
 int t2_pos[2] = {0,0};
@@ -60,7 +61,7 @@ void switch_terminal(int from, int to) {
   else if(from == 2){
     f = video_buf2;
     t2_pos[0] = screen_x;
-    t3_pos[1] = screen_y;
+    t2_pos[1] = screen_y;
   }
   else if(from == 3){
     f = video_buf3;
@@ -92,6 +93,12 @@ void switch_terminal(int from, int to) {
       *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
   }
 
+  if(highest_terminal_processes[1] == 0 && to == 2){
+      //execute((const uint8_t*)("shell"));
+  }
+  if(highest_terminal_processes[2] == 0 && to == 3){
+      //execute((const uint8_t*)("shell"));
+  }
 }
 
 /* int get_screenx();

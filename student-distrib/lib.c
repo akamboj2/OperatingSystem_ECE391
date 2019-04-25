@@ -11,6 +11,9 @@
 
 static int screen_x;
 static int screen_y;
+
+int curr_terminal = 1;
+
 static char* video_mem = (char *)VIDEO;
 char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
 char video_buf2[NUM_ROWS * NUM_COLS] = {' '};
@@ -84,6 +87,7 @@ void switch_terminal(int from, int to) {
     screen_y = t3_pos[1];
   }
 
+  curr_terminal = to;
   update_cursor(screen_x, screen_y);
   set_cursors(screen_x, screen_y);
 
@@ -94,10 +98,10 @@ void switch_terminal(int from, int to) {
   }
 
   if(highest_terminal_processes[1] == 0 && to == 2){
-      //execute((const uint8_t*)("shell"));
+      execute((const uint8_t*)("shell"));
   }
   if(highest_terminal_processes[2] == 0 && to == 3){
-      //execute((const uint8_t*)("shell"));
+      execute((const uint8_t*)("shell"));
   }
 }
 

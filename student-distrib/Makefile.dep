@@ -15,4 +15,5 @@ rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
   sys_calls.h filesys.h keyboard.h i8259.h
 sys_calls.o: sys_calls.c sys_calls.h types.h filesys.h rtc.h keyboard.h \
   lib.h assembly_linkage.h idt.h constants.h paging.h x86_desc.h
-tests.o: tests.c
+tests.o: tests.c tests.h x86_desc.h types.h lib.h keyboard.h rtc.h \
+  filesys.h sys_calls.h assembly_linkage.h idt.h

@@ -213,7 +213,13 @@ void entry(unsigned long magic, unsigned long addr) {
     //launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
+    //curr_terminal = 1;
     execute((const uint8_t*)("shell"));
+    /*switch_terminal(1,2);
+    execute((const uint8_t*)("shell"));
+    switch_terminal(2,3);
+    execute((const uint8_t*)("shell"));
+    switch_terminal(3,1);*/
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }

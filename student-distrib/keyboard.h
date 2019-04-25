@@ -3,9 +3,6 @@
 
 #include "types.h"
 
-extern int curr_terminal;
-
-
 //prints out direct user keyboard inputs
 void keyboard_handler();
 

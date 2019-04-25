@@ -30,6 +30,7 @@ int32_t sigreturn (void);
 
 extern int32_t process_count;
 extern int32_t highest_terminal_processes[3];
+extern int32_t process_per_terminal[3];
 extern int32_t pcb_slots[6];
 
 

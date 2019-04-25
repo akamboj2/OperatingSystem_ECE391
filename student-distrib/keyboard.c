@@ -41,7 +41,6 @@ int cap_flag = FALSE;
 int ctrl_key = FALSE;
 int keyboard_buffer_index = 0;
 int enter_flag = 0;
-int curr_terminal = 1;
 
 unsigned char keyboard_buffer[KB_BUF_SIZE] = {'\0'};
 unsigned char keyboard_buffer1[KB_BUF_SIZE] = {'\0'};
@@ -105,7 +104,6 @@ void keyboard_handler(){
 			kb_ptr = keyboard_buffer3;
 		if(c == _F1 && curr_terminal != 1){
 			 switch_terminal(curr_terminal, 1); //(from,to)
-			 curr_terminal = 1;
 			 for(j = 0; j < KB_BUF_SIZE; j++){
 				 kb_ptr[j] = keyboard_buffer[j];
 				 keyboard_buffer[j] = keyboard_buffer1[j];
@@ -113,7 +111,6 @@ void keyboard_handler(){
 		}
 		else if(c == _F2 && curr_terminal != 2){
 			switch_terminal(curr_terminal, 2); //(from,to)
-			curr_terminal = 2;
 			for(j = 0; j < KB_BUF_SIZE; j++){
 				kb_ptr[j] = keyboard_buffer[j];
 				keyboard_buffer[j] = keyboard_buffer2[j];
@@ -121,7 +118,6 @@ void keyboard_handler(){
 		}
 		else if(c == _F3 && curr_terminal != 3){
 			switch_terminal(curr_terminal, 3); //(from,to)
-			curr_terminal = 3;
 			for(j = 0; j < KB_BUF_SIZE; j++){
 				kb_ptr[j] = keyboard_buffer[j];
 				keyboard_buffer[j] = keyboard_buffer3[j];

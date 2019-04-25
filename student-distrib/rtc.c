@@ -79,8 +79,35 @@ int rtc_read(int32_t fd, void* buf, int32_t nbytes){
  * OUPUTS: return 0
  * SIDE EFFECTS: chnages the frequency of the RTC
  */
-int rtc_write(int32_t rate, const void* buf, int32_t nbytes){
-    rate &= 0x0F;
+int rtc_write(int32_t fd, const void* buf, int32_t nbytes){
+    if(nbytes != 4 || buf == NULL){
+      return -1;
+    }
+    int32_t freq =*(int32_t*)(buf);
+    uint32_t rate;
+    if(freq == F_1024)
+      rate = R_1;
+    else if(freq == F_512)
+      rate = R_2;
+    else if(freq == F_256)
+      rate = R_3;
+    else if(freq == F_128)
+      rate = R_4;
+    else if(freq == F_64)
+      rate = R_5;
+    else if(freq == F_32)
+      rate = R_6;
+    else if(freq == F_16)
+      rate = R_7;
+    else if(freq == F_8)
+      rate = R_8;
+    else if(freq == F_4)
+      rate = R_9;
+    else if(freq == F_2)
+      rate = R_10;
+    else return -1;
+
+    //rate &= 0x0F;
     if (rate >= 15 || rate <= 2)  //ensures the rate is within the bounds
         return -1;
     cli();

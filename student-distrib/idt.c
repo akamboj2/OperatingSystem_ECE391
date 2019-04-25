@@ -8,6 +8,7 @@
 #include "i8259.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "scheduler.h"
 
 
 #define U_LVL 3
@@ -49,6 +50,7 @@ void idt_init(){
 
   add_vector(40, &rtc_assembly, K_LVL, DATA_TYPE);
   add_vector(33, &keyboard_assembly, K_LVL, DATA_TYPE);
+  add_vector(32, &pit_assembly, K_LVL,DATA_TYPE);
   //return;
 }
 
@@ -195,3 +197,5 @@ void rtc_interrupt(){
 void keyboard_interrupt(){
 	keyboard_handler();
 }
+
+//NOTE: PIT Interrupt assembly calls handler directly

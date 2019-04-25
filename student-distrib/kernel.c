@@ -24,6 +24,8 @@
 #define RTC_RW 0x71
 #define RATE_RTC 0x0E
 
+#define PIT_REG_MODE 0x48
+
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
@@ -201,12 +203,42 @@ void entry(unsigned long magic, unsigned long addr) {
   //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
 
+  enable_irq(0);      //enable pit or interval timer
+  int8_t pit_status= 0x0; //channel 0, latch count, mode 0 (interrupt on terminal count)
+  outb(PIT_REG_MODE,pit_status);
+
   sti();
 	//rate = 6;
 	//outb(0x8A, 0x70);
 	//char prev1 = inb(0x71);
 	//outb(0x8A, 0x70);
 	//outb((prev&0xF0)|rate, 0x71);
+
+  /*
+
+  Bits         Usage
+ 6 and 7      Select channel :
+                 0 0 = Channel 0
+                 0 1 = Channel 1
+                 1 0 = Channel 2
+                 1 1 = Read-back command (8254 only)
+ 4 and 5      Access mode :
+                 0 0 = Latch count value command
+                 0 1 = Access mode: lobyte only
+                 1 0 = Access mode: hibyte only
+                 1 1 = Access mode: lobyte/hibyte
+ 1 to 3       Operating mode :
+                 0 0 0 = Mode 0 (interrupt on terminal count)
+                 0 0 1 = Mode 1 (hardware re-triggerable one-shot)
+                 0 1 0 = Mode 2 (rate generator)
+                 0 1 1 = Mode 3 (square wave generator)
+                 1 0 0 = Mode 4 (software triggered strobe)
+                 1 0 1 = Mode 5 (hardware triggered strobe)
+                 1 1 0 = Mode 2 (rate generator, same as 010b)
+                 1 1 1 = Mode 3 (square wave generator, same as 011b)
+ 0            BCD/Binary mode: 0 = 16-bit binary, 1 = four-digit BCD
+
+ */
 
 #ifdef RUN_TESTS
     /* Run tests */

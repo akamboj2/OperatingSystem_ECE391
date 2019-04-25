@@ -1,9 +1,12 @@
 #define ASM     1
 .globl keyboard_assembly
 .globl rtc_assembly
+.globl pit_assembly
+
 .globl system_calls_assembly
 .globl context_switch
 .globl reverse_system_call
+.globl pit_assembly
 
 keyboard_assembly:
 pushl %es
@@ -54,6 +57,33 @@ popl %edi
 popl %ds
 popl %es
 
+iret
+
+
+pit_assembly:
+cli
+pushl %es
+pushl %ds
+pushl %edi
+pushl %esi
+pushl %eax
+pushl %ebx
+pushl %ecx
+pushl %edx
+pushl %ebp
+
+call pit_handler
+
+popl %ebp
+popl %edx
+popl %ecx
+popl %ebx
+popl %eax
+popl %esi
+popl %edi
+popl %ds
+popl %es
+sti
 iret
 
 

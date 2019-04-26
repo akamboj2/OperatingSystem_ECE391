@@ -18,7 +18,7 @@ static int screen_y;
 
 int curr_terminal = 1;
 
-static char* video_mem = (char *)VIDEO;
+char* video_mem = (char *)VIDEO;
 
 char* video_buf1 = (char *)VIDEO1;
 char* video_buf2 = (char *)VIDEO2;

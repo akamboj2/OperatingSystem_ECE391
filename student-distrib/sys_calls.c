@@ -417,14 +417,14 @@ int32_t vidmap (uint8_t** screen_start){
     return -1;
   }
 
-  int32_t vid_page= VID_PAGE; //set bits: present (bit# 0), r/w (bit# 1) and user (bit#2)
+  //int32_t vid_page= VID_PAGE; //this is now in syscall.h
 
   //set page directory to correct physical address
   //below this should be the index USER_VID_ADDR/_4MB = 33
-  pageDirectory[USER_VID_ADDR/_4MB]= (int32_t)pgTbl_vidMem | vid_page; //directory bits should be same as page's
+  pageDirectory[USER_VID_ADDR/_4MB]= (int32_t)pgTbl_vidMem | VID_PAGE; //directory bits should be same as page's
 
   //set page table to correct physical address
-  pgTbl_vidMem[0]= VIDEO | vid_page;
+  pgTbl_vidMem[0]= VIDEO | VID_PAGE;
 
   //set the global variable user_vid_mem (virtual address mapped to same phsyical video memory)
   //you only need to set it once (same for all processes)

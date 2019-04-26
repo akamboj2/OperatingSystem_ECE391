@@ -4,6 +4,8 @@
 #include "i8259.h"
 #include "types.h"
 
+extern int curr_sheduled=1; //either 1,2 or 3 (not 0)
+
 /*pit handler
  *
  * Inputs: None
@@ -25,6 +27,34 @@ void pit_handler(){
   u Update running video coordinates
   u Restore next process’ esp/ebp
   */
+int next_scheduled = curr_sheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
+
+ //update paging (same page directory and table, just remap video memory accordingly)
+ if (next_scheduled==curr_terminal){
+  //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
+  pgTbl_vidMem[0]=VIDEO|VID_PAGE; //this is so that the user (calling vidmap syscall) can print
+  video_mem = (char *)VIDEO;  //this is so that printf/puts/putc (which dereferences vid_mem) can print
+ }else{
+   //otherwise we need to update it to point to the correct video buffer in physical memory
+   switch(next_scheduled){
+    case 1:
+      pgTbl_vidMem[0]=VIDEO1|VID_PAGE;
+      video_mem = (char *)VIDEO1;
+      break;
+    case 2: 
+      pgTbl_vidMem[0]=VIDEO2|VID_PAGE;
+      video_mem = (char *)VIDEO2;
+      break;
+    case 3:
+      pgTbl_vidMem[0]=VIDEO3|VID_PAGE;
+      video_mem = (char *)VIDEO3;
+      break;
+   }
+ }
+
+ //update tss for next process
+//pcb_t* getPCB()
+
   send_eoi(0);
 
 }

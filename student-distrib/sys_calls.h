@@ -15,7 +15,7 @@
 #define MAX_ARGS 127
 #define STDI_O 2
 #define VID_MASK 0xFFC00000
-#define VID_PAGE 7
+#define VID_PAGE 7    //set bits: present (bit# 0), r/w (bit# 1) and user (bit#2)
 
 int32_t halt (uint8_t status);
 int32_t execute (const uint8_t* command);

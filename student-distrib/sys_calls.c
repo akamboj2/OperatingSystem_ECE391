@@ -124,9 +124,6 @@ int32_t execute (const uint8_t* command){
     return -1;
   }
 
-  process_count++;
-  process_per_terminal[curr_terminal-1]++;
-
   uint8_t filename[_4B] = {'\0'};
   uint8_t data[_4B] = {'\0'};
 
@@ -137,6 +134,26 @@ int32_t execute (const uint8_t* command){
     filename[i] = command[i];
     i++;
   }
+
+
+
+  //ensure that the file actually exists
+  dentry_t temp;
+  if(read_dentry_by_name(filename, &temp) == -1)
+    return -1;
+
+  if(command[i] != ' ')
+    args_flag = 1;
+
+  //read data to check if executable and to find point to start executing at
+  read_data(temp.inode_num, 0, data, _4B);
+
+  //check if file is a executable
+  if(data[0] != DEL || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
+    return -1;
+
+  process_count++;
+  process_per_terminal[curr_terminal-1]++;
 
   int pcb_index = 0;
   while(pcb_index < 6){
@@ -166,21 +183,6 @@ int32_t execute (const uint8_t* command){
     i++;
     j++;
   }
-
-  //ensure that the file actually exists
-  dentry_t temp;
-  if(read_dentry_by_name(filename, &temp) == -1)
-    return -1;
-
-  if(command[i] != ' ')
-    args_flag = 1;
-
-  //read data to check if executable and to find point to start executing at
-  read_data(temp.inode_num, 0, data, _4B);
-
-  //check if file is a executable
-  if(data[0] != DEL || data[1] != 'E' || data[2] != 'L' || data[3] != 'F')
-    return -1;
 
   //Paging
   pageDirectory[_4B] = (_8MB + (pcb_index*_4MB)) | MAP_MASK;

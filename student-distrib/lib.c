@@ -5,6 +5,10 @@
 #include "sys_calls.h"
 
 #define VIDEO       0xB8000
+#define VIDEO1      0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
+#define VIDEO2      0xC0000
+#define VIDEO2      0xC1000
+
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
@@ -15,9 +19,15 @@ static int screen_y;
 int curr_terminal = 1;
 
 static char* video_mem = (char *)VIDEO;
-char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
-char video_buf2[NUM_ROWS * NUM_COLS] = {' '};
-char video_buf3[NUM_ROWS * NUM_COLS] = {' '};
+
+char* video_buf1 = (char *)VIDEO1;
+char* video_buf2 = (char *)VIDEO2;
+char* video_buf3 = (char *)VIDEO3;
+
+//these have been moved to paging.c so they can be mapped as pages and initialized there
+// char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
+// char video_buf2[NUM_ROWS * NUM_COLS] = {' '};
+// char video_buf3[NUM_ROWS * NUM_COLS] = {' '};
 
 int t1_pos[2] = {0,0};
 int t2_pos[2] = {0,0};

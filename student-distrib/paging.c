@@ -28,6 +28,21 @@ void paging_init() {
     pageDirectory[0] =  (unsigned)pageTable | page;
     pageDirectory[1] = KERNEL_PHYS_ADDR | kernelPage; //how does processor know this block only has 1 table?--bc of bit 7 pf kernelpage(set indicates 4 MB)
     pageTable[VIDEO/PAGE_MEM_SIZE] = VIDEO|videoPage; //addes page-table base address (bits 31-12) to videoPage (bits 8-0), (we ignore 11-9)
+    //below maps virtual to physcal at the pages following the original video memory
+    pageTable[VIDEO1/PAGE_MEM_SIZE] = VIDEO1|videoPage;
+    pageTable[VIDEO2/PAGE_MEM_SIZE] = VIDEO2|videoPage;
+    pageTable[VIDEO3/PAGE_MEM_SIZE] = VIDEO3|videoPage;
+
+    //the code below should clear all the video memories, if i know how to code correctly
+    int i,j;
+    for (i=0;i<NUM_COLS;i++){
+        for (j=0j<NUM_ROWS;j++){
+            *video_buf1++ =' ';
+            *video_buf2++ =' ';
+            *video_buf3++=' ';
+        }
+    }
+    
 
     //xFFFFF000 is used to to only set the 20 MSb of pageDirectory address to top 20 bits in CR3
     asm volatile("MOVL %%CR3, %%edx; ANDL $0x00000FFF, %%edx; ADDL %0,%%edx; MOVL %%edx, %%CR3;" //need double %% for registers single % to specify input/output from C

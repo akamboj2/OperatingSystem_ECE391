@@ -7,6 +7,9 @@
 
 #include "types.h"
 
+extern int curr_terminal;
+
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
 int32_t puts(int8_t *s);
@@ -17,6 +20,7 @@ void clear(void);
 
 //used created functions
 void scroll(void);
+void switch_terminal(int from, int to);
 int get_screenx();
 int get_screeny();
 void set_cursors(int pos_x, int pos_y);

@@ -141,7 +141,7 @@ int read_dentry_by_index (uint32_t index, dentry_t* dentry){
  *   SIDE EFFECTS: none
  */
 int32_t file_read (int32_t fd, void* buf, int32_t nbytes){
-  pcb_t* cur_pcb=getPCB(curr_process);
+  pcb_t* cur_pcb=getPCB(highest_terminal_processes[curr_terminal-1]);
   //firs some sanity checks
   //printf("in file_read: fd:%d,buf:%s,nbytes:%d",fd,buf,nbytes);
   if (nbytes<0){

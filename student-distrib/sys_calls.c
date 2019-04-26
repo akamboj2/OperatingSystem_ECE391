@@ -16,8 +16,13 @@ int32_t stdout_read(int32_t a,void* b,int32_t c){return 0;};
 static ftable stdin_table = {&terminal_read,&stdin_write,&terminal_open,&terminal_close};
 static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&terminal_close};
 
-int32_t curr_process = 0;
+ //curr_process = 0;
 int32_t user_vid_mem=0;
+int32_t process_count = 0;
+int32_t highest_terminal_processes[3] = {0,0,0};
+int32_t pcb_slots[6] = {0,0,0,0,0,0};
+int32_t process_per_terminal[3] = {0,0,0};
+
 
 pcb_t * getPCB(int32_t curr){
     return (pcb_t*)(_8MB - (curr)*_8KB);
@@ -34,9 +39,10 @@ int32_t halt (uint8_t status){
   //close files in fd
   int i, j;
   cli();
-  curr_process--;
-  pcb_t* pcb_to_be_halted = getPCB(curr_process+1);
-  //pcb_t* pcb_parent = getPCB(curr_process-1+1);
+  process_count--;
+  process_per_terminal[curr_terminal-1]--;
+  pcb_t* pcb_to_be_halted = getPCB(highest_terminal_processes[curr_terminal-1]);
+
   //correct file array. this will close any files opened by the process
   for(i=0; i<8; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
@@ -48,9 +54,22 @@ int32_t halt (uint8_t status){
     pcb_to_be_halted->args[j] = '\0';
   }
 
-  //restore parent paging
+  pcb_slots[highest_terminal_processes[curr_terminal-1]-1] = 0;
 
-  pageDirectory[_4B] = (_8MB + ((curr_process-1)*_4MB)) | MAP_MASK;
+  //restore parent paging
+  if(pcb_to_be_halted->parent_task != NULL){
+    pageDirectory[_4B] = (_8MB + (((pcb_to_be_halted->parent_task->process_num)-1)*_4MB)) | MAP_MASK;
+    highest_terminal_processes[curr_terminal-1] = pcb_to_be_halted->parent_task->process_num;
+  }
+  else{
+    highest_terminal_processes[curr_terminal-1] = 0;
+    clear();
+    set_cursors(0,0);			//reset cursor
+    update_cursor(0,0);
+    execute((const uint8_t*)("shell"));
+    //return 0;
+  }
+
 
   //flush tlb
   cli();
@@ -94,10 +113,13 @@ int32_t execute (const uint8_t* command){
   if(!command){
     return -1;
   }
-
-  if(curr_process == 6){
+  if(process_count >= 6 || process_per_terminal[curr_terminal-1] >= 4){
     return -1;
   }
+
+  process_count++;
+  process_per_terminal[curr_terminal-1]++;
+
   uint8_t filename[_4B] = {'\0'};
   uint8_t data[_4B] = {'\0'};
 
@@ -109,8 +131,20 @@ int32_t execute (const uint8_t* command){
     i++;
   }
 
+  int pcb_index = 0;
+  while(pcb_index < 6){
+    if(pcb_slots[pcb_index] == 0)
+      break;
+    pcb_index++;
+  }
+  /*for(pcb_index = 0; pcb_index < 6; pcb_index++){
+    if(pcb_slots[pcb_index] == 0)
+      break;
+  }*/
+  pcb_slots[pcb_index] = 1;
+
   //PCB initialization
-  pcb_t * pcb = (pcb_t *)(_8MB - (curr_process+1)*_8KB);
+  pcb_t * pcb = (pcb_t *)(_8MB - (pcb_index+1)*_8KB);
 
   while(command[i] == ' ') {
     i++;
@@ -143,7 +177,7 @@ int32_t execute (const uint8_t* command){
     return -1;
 
   //Paging
-  pageDirectory[_4B] = (_8MB + (curr_process*_4MB)) | MAP_MASK;
+  pageDirectory[_4B] = (_8MB + (pcb_index*_4MB)) | MAP_MASK;
   //4B bc it's 32th entry in page directory (director is size 4MB) 32*4 =128MB address
 
   //flush tlb
@@ -163,14 +197,16 @@ int32_t execute (const uint8_t* command){
 
 
 
-
-  if(curr_process != 0){
-    pcb->parent_task =  (pcb_t *)(_8MB - (curr_process)*_8KB);
+  if(highest_terminal_processes[curr_terminal-1] != 0){
+    pcb->parent_task =  (pcb_t *)(_8MB - (highest_terminal_processes[curr_terminal-1])*_8KB);
   }
   else pcb->parent_task = NULL;
 
+  highest_terminal_processes[curr_terminal-1] = pcb_index + 1;
 
-  pcb->process_num = curr_process;
+  //Set up the PCB
+  pcb->process_num = pcb_index+1;
+
   pcb->eip = *eip;
   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb->ebp));
   asm volatile("MOVL %%esp, %%eax;" : "=a" (pcb->esp));
@@ -195,10 +231,9 @@ int32_t execute (const uint8_t* command){
   //Context Switch
   tss.ss0 = KERNEL_DS;
   pcb->esp0 = tss.esp0;
-  tss.esp0 = _8MB - (curr_process)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
+  tss.esp0 = _8MB - (pcb_index)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
 
-  curr_process++;
-
+  //curr_process++;
   //for eip argument, push eip found above
 
   context_switch((uint32_t*)*eip);
@@ -216,7 +251,7 @@ int32_t execute (const uint8_t* command){
  * Side Effects: none
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes){
-  pcb_t* cur_pcb=getPCB(curr_process);
+  pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
   if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 1 || cur_pcb->file_array[fd].flags == 0)
     return -1;
   //printf("IN READ YAY!\n");
@@ -243,7 +278,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
-  pcb_t* cur_pcb=getPCB(curr_process);
+  pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
   if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0)
     return -1;
 
@@ -267,7 +302,7 @@ int32_t write (int32_t fd, const void* buf, int32_t nbytes){
  */
 int32_t open (const uint8_t* filename){
   dentry_t entry;
-  pcb_t* cur_pcb=getPCB(curr_process);
+  pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
   //printf("cur_pcb->file_arr_size: %d\n",cur_pcb->file_arr_size);
   if(read_dentry_by_name(filename, &entry) || cur_pcb->file_arr_size>=MAX_OPEN_FILES){ //find dentry and return -1 if it fails
     return -1;
@@ -321,8 +356,9 @@ int32_t open (const uint8_t* filename){
  */
 int32_t close (int32_t fd){
 //  printf("Call close with fd:%d\n",fd);
-  pcb_t* cur_pcb=getPCB(curr_process);
-  int first_fd_ind = 2; //less than this is an invalid descriptor
+  pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
+  int first_fd_ind = STDI_O; //less than this is an invalid descriptor
+
   if ((fd < first_fd_ind || fd >= MAX_OPEN_FILES) || cur_pcb->file_array[fd].flags == 0){
     //printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
@@ -341,7 +377,7 @@ int32_t close (int32_t fd){
  * Side Effects: none
  */
 int32_t getargs (uint8_t* buf, int32_t nbytes){
-  pcb_t* pcb = getPCB(curr_process);
+  pcb_t* pcb = getPCB(  highest_terminal_processes[curr_terminal-1]);
    if(pcb->args == NULL)
      return -1;
 

@@ -256,7 +256,7 @@ void sys_call_jmptbl_test(){
  * Side Effects:
  */
 void open_test(){
-	pcb_t* cur_pcb=getPCB(curr_process);
+	pcb_t* cur_pcb=getPCB(highest_terminal_processes[curr_terminal-1]);
 
 	uint8_t fname[20]="frame0.txt";
 	printf("Opening frame0.txt\n");
@@ -288,7 +288,7 @@ void open_test(){
  * Side Effects:
  */
  void close_test(){
-	 pcb_t* cur_pcb=getPCB(curr_process);
+	 pcb_t* cur_pcb=getPCB(highest_terminal_processes[curr_terminal-1]);
 
 	 close(3);
 	 close(5);

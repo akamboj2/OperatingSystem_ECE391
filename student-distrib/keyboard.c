@@ -47,6 +47,9 @@ unsigned char keyboard_buffer1[KB_BUF_SIZE] = {'\0'};
 unsigned char keyboard_buffer2[KB_BUF_SIZE] = {'\0'};
 unsigned char keyboard_buffer3[KB_BUF_SIZE] = {'\0'};
 
+int kb1_pos = 0;
+int kb2_pos = 0;
+int kb3_pos = 0;
 
 /*keyboard handler
  *
@@ -71,6 +74,8 @@ void keyboard_handler(){
             'X','C','V','B','N','M','<','>','?'};
 
 	unsigned char c = inb(keyboard_port);
+	send_eoi(1);
+
 
   if(c == SHIFT_PRESSED1 || c == SHIFT_PRESSED2){	//shift pressed
     shift_key = TRUE;
@@ -96,32 +101,50 @@ void keyboard_handler(){
 	else if(c == _F1 || c == _F2 || c == _F3){
 		int j;
 		unsigned char * kb_ptr;
-		if(curr_terminal == 1)
+		if(curr_terminal == 1){
 			kb_ptr = keyboard_buffer1;
-		else if(curr_terminal == 2)
+		}
+		else if(curr_terminal == 2){
 			kb_ptr = keyboard_buffer2;
-		else if(curr_terminal == 3)
+		}
+		else if(curr_terminal == 3){
 			kb_ptr = keyboard_buffer3;
+		}
 		if(c == _F1 && curr_terminal != 1){
-			 switch_terminal(curr_terminal, 1); //(from,to)
 			 for(j = 0; j < KB_BUF_SIZE; j++){
 				 kb_ptr[j] = keyboard_buffer[j];
 				 keyboard_buffer[j] = keyboard_buffer1[j];
 			 }
+			if(curr_terminal == 2)
+				kb2_pos = keyboard_buffer_index;
+			else if(curr_terminal == 3)
+				kb3_pos = keyboard_buffer_index;
+			keyboard_buffer_index = kb1_pos;
+			switch_terminal(curr_terminal, 1); //(from,to)
 		}
 		else if(c == _F2 && curr_terminal != 2){
-			switch_terminal(curr_terminal, 2); //(from,to)
 			for(j = 0; j < KB_BUF_SIZE; j++){
 				kb_ptr[j] = keyboard_buffer[j];
 				keyboard_buffer[j] = keyboard_buffer2[j];
 			}
+			if(curr_terminal == 1)
+				kb1_pos = keyboard_buffer_index;
+			else if(curr_terminal == 3)
+				kb3_pos = keyboard_buffer_index;
+			keyboard_buffer_index = kb2_pos;
+			switch_terminal(curr_terminal, 2); //(from,to)
 		}
 		else if(c == _F3 && curr_terminal != 3){
-			switch_terminal(curr_terminal, 3); //(from,to)
 			for(j = 0; j < KB_BUF_SIZE; j++){
 				kb_ptr[j] = keyboard_buffer[j];
 				keyboard_buffer[j] = keyboard_buffer3[j];
 			}
+			if(curr_terminal == 1)
+				kb1_pos = keyboard_buffer_index;
+			else if(curr_terminal == 2)
+				kb2_pos = keyboard_buffer_index;
+			keyboard_buffer_index = kb3_pos;
+			switch_terminal(curr_terminal, 3); //(from,to)
 		}
 	}
   else if(c == SPACE){	//outputs space
@@ -181,7 +204,6 @@ void keyboard_handler(){
     }
 	}
 
-	send_eoi(1);
 }
 
 /*terminal_open
@@ -217,6 +239,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
 	int index = 0;
 	if(nbytes < 0)
 		return -1;
+	//sti();
 	while(enter_flag!=1){
 
 	}

@@ -50,7 +50,7 @@ int32_t halt (uint8_t status){
   process_count--;
   process_per_terminal[curr_terminal-1]--;
   pcb_t* pcb_to_be_halted = getPCB(highest_terminal_processes[curr_terminal-1]);
-  //pcb_t* pcb_parent = getPCB(curr_process-1+1);
+
   //correct file array. this will close any files opened by the process
   for(i=0; i<MAX_OPEN_FILES; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
@@ -125,6 +125,7 @@ int32_t execute (const uint8_t* command){
   }
 
   process_count++;
+  process_per_terminal[curr_terminal-1]++;
 
   uint8_t filename[_4B] = {'\0'};
   uint8_t data[_4B] = {'\0'};
@@ -206,6 +207,8 @@ int32_t execute (const uint8_t* command){
   }
   else pcb->parent_task = NULL;
 
+  highest_terminal_processes[curr_terminal-1] = pcb_index + 1;
+
   //Set up the PCB
   pcb->process_num = pcb_index+1;
   pcb->eip = *eip;
@@ -235,8 +238,6 @@ int32_t execute (const uint8_t* command){
   tss.esp0 = _8MB - (pcb_index)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
 
   //curr_process++;
-  highest_terminal_processes[curr_terminal-1] = pcb_index + 1;
-  process_per_terminal[curr_terminal-1]++;
   //for eip argument, push eip found above
 
   context_switch((uint32_t*)*eip);

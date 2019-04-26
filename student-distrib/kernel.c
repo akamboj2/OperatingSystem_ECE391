@@ -14,7 +14,7 @@
 #include "rtc.h"
 #include "filesys.h"
 #include "sys_calls.h"
-
+#include "scheduler.h"
 #define RUN_TESTS 1
 
 #define REG_A 0x8A
@@ -24,7 +24,6 @@
 #define RTC_RW 0x71
 #define RATE_RTC 0x0E
 
-#define PIT_REG_MODE 0x48
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -203,9 +202,8 @@ void entry(unsigned long magic, unsigned long addr) {
   //terminal_open();
 	enable_irq(8);                               //initialize the rtc irq line
 
-  enable_irq(0);      //enable pit or interval timer
-  int8_t pit_status= 0x0; //channel 0, latch count, mode 0 (interrupt on terminal count)
-  outb(PIT_REG_MODE,pit_status);
+
+  pit_init();
 
   sti();
 	//rate = 6;

@@ -4,14 +4,7 @@
 #include "lib.h"
 #include "sys_calls.h"
 
-#define VIDEO       0xB8000
-#define VIDEO1      0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
-#define VIDEO2      0xC0000
-#define VIDEO2      0xC1000
 
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
 
 static int screen_x;
 static int screen_y;

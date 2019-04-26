@@ -68,6 +68,7 @@ int32_t halt (uint8_t status){
   if(pcb_to_be_halted->parent_task != NULL){
     pageDirectory[_4B] = (_8MB + (((pcb_to_be_halted->parent_task->process_num)-1)*_4MB)) | MAP_MASK;
     highest_terminal_processes[curr_terminal-1] = pcb_to_be_halted->parent_task->process_num;
+    tss.esp0 = pcb_to_be_halted->parent_task->esp0;
   }
   else{
     highest_terminal_processes[curr_terminal-1] = 0;
@@ -84,7 +85,7 @@ int32_t halt (uint8_t status){
   asm volatile ("MOVL %eax, %CR3;");
   sti();
 
-  tss.esp0 = pcb_to_be_halted->esp0;
+
 
   sti();
 
@@ -236,8 +237,8 @@ int32_t execute (const uint8_t* command){
 
   //Context Switch
   tss.ss0 = KERNEL_DS;
-  pcb->esp0 = tss.esp0;
   tss.esp0 = _8MB - (pcb_index)*_8KB - _ONE_STACK_ENTRY; //_ONE_STACK_ENTRY used to go to bottom of kernel stack for curr process
+  pcb->esp0 = tss.esp0;
 
   //curr_process++;
   //for eip argument, push eip found above

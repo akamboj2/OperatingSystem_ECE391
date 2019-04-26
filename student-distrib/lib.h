@@ -7,7 +7,21 @@
 
 #include "types.h"
 
+#define VIDEO       0xB8000
+#define VIDEO1      0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
+#define VIDEO2      0xC0000
+#define VIDEO3      0xC1000
+
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+
 extern int curr_terminal;
+extern char* video_mem;
+extern char* video_buf1;
+extern char* video_buf2;
+extern char* video_buf3;
+
 
 
 int32_t printf(int8_t *format, ...);

@@ -3,8 +3,13 @@
 #include "lib.h"
 #include "i8259.h"
 #include "types.h"
+#include "constants.h"
+#include "sys_calls.h"
+#include "paging.h"
+#include "x86_desc.h"
 
-extern int curr_sheduled=1; //either 1,2 or 3 (not 0)
+
+int curr_sheduled=1; //either 1,2 or 3 (not 0)
 
 /*pit handler
  *
@@ -41,7 +46,7 @@ int next_scheduled = curr_sheduled%3+1; //mod 3 first bc we are rotating between
       pgTbl_vidMem[0]=VIDEO1|VID_PAGE;
       video_mem = (char *)VIDEO1;
       break;
-    case 2: 
+    case 2:
       pgTbl_vidMem[0]=VIDEO2|VID_PAGE;
       video_mem = (char *)VIDEO2;
       break;
@@ -51,9 +56,34 @@ int next_scheduled = curr_sheduled%3+1; //mod 3 first bc we are rotating between
       break;
    }
  }
+//update program image in virtual to point to correct physical
+pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
+
+pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_sheduled-1]);
+pcb_curr_process->esp0 = tss.esp0;
+
+pcb_t* pcb_to_be_scheduled = getPCB(highest_terminal_processes[next_scheduled-1]);
 
  //update tss for next process
-//pcb_t* getPCB()
+//flush tlb
+cli();
+asm volatile ("MOVL %CR3, %eax;");
+asm volatile ("MOVL %eax, %CR3;");
+sti();
+
+tss.esp0 = _8MB - ((pcb_to_be_scheduled->process_num)-1)*_8KB - _ONE_STACK_ENTRY;
+
+sti();
+
+//prepare for jump to execute by finding the correct esp value in parent pcb
+/*asm volatile(
+  ""
+  "MOVL %0, %%eax;"
+  "MOVL %1, %%esp;"
+  "MOVL %2, %%ebp;"
+  "JMP reverse_system_call;"
+  : : "r" ((uint32_t)status), "r" (pcb_to_be_scheduled->esp), "r" (pcb_to_be_scheduled->ebp) : "eax"
+);*/
 
   send_eoi(0);
 

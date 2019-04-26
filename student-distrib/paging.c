@@ -1,4 +1,5 @@
 #include "paging.h"
+#include "lib.h"
 
 //NEED 4KB alignment for PT and PD arrays
 //Needed for: CR3 Register, and table entries (PTE AND PDE) assume alignment that's why they only use
@@ -34,15 +35,18 @@ void paging_init() {
     pageTable[VIDEO3/PAGE_MEM_SIZE] = VIDEO3|videoPage;
 
     //the code below should clear all the video memories, if i know how to code correctly
-    int i,j;
+    int j;
     for (i=0;i<NUM_COLS;i++){
-        for (j=0j<NUM_ROWS;j++){
+        for (j=0;j<NUM_ROWS;j++){
             *video_buf1++ =' ';
+            *video_buf1++ = ATTRIB;
             *video_buf2++ =' ';
+            *video_buf2++ = ATTRIB;
             *video_buf3++=' ';
+            *video_buf3++ = ATTRIB;
         }
     }
-    
+
 
     //xFFFFF000 is used to to only set the 20 MSb of pageDirectory address to top 20 bits in CR3
     asm volatile("MOVL %%CR3, %%edx; ANDL $0x00000FFF, %%edx; ADDL %0,%%edx; MOVL %%edx, %%CR3;" //need double %% for registers single % to specify input/output from C

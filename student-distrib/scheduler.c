@@ -59,34 +59,27 @@ int next_scheduled = curr_sheduled%3+1; //mod 3 first bc we are rotating between
 //update program image in virtual to point to correct physical
 pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
 
-pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_sheduled-1]);
-pcb_curr_process->esp0 = tss.esp0;
-
-pcb_t* pcb_to_be_scheduled = getPCB(highest_terminal_processes[next_scheduled-1]);
-
- //update tss for next process
 //flush tlb
 cli();
 asm volatile ("MOVL %CR3, %eax;");
 asm volatile ("MOVL %eax, %CR3;");
 sti();
 
+//store tss for current process
+pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_sheduled-1]);
+pcb_curr_process->esp0 = tss.esp0;
+
+//update tss for next process
+pcb_t* pcb_to_be_scheduled = getPCB(highest_terminal_processes[next_scheduled-1]);
 tss.esp0 = _8MB - ((pcb_to_be_scheduled->process_num)-1)*_8KB - _ONE_STACK_ENTRY;
 
-sti();
+//save previous ebp, restore new ebp
+asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
+asm volatile( "MOVL %1, %%ebp;" : :"r" (pcb_to_be_scheduled->ebp_scheduler));
 
-//prepare for jump to execute by finding the correct esp value in parent pcb
-/*asm volatile(
-  ""
-  "MOVL %0, %%eax;"
-  "MOVL %1, %%esp;"
-  "MOVL %2, %%ebp;"
-  "JMP reverse_system_call;"
-  : : "r" ((uint32_t)status), "r" (pcb_to_be_scheduled->esp), "r" (pcb_to_be_scheduled->ebp) : "eax"
-);*/
+  send_eoi(0);//re enable hardware interrupts
 
-  send_eoi(0);
-
+  //when returns it should jmp eip to next processes return from pit interrupt bc we switched stacks
 }
 
 /*pit handler

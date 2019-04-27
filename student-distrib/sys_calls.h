@@ -68,10 +68,11 @@ struct pcb_t{
   pcb_t * parent_task;
   pcb_t * child_task;
   uint32_t eip;
-  uint32_t esp;
+  uint32_t esp; //NOTE: This is esp, ebp of PARENT so that halt can restore it and move back to parent
   uint32_t ebp;
   uint32_t esp0;
   uint8_t args[MAX_ARGS];
+  uint32_t ebp_scheduler;
 };
 
 pcb_t * getPCB(int32_t curr);

@@ -33,17 +33,19 @@ void paging_init() {
     pageTable[VIDEO1/PAGE_MEM_SIZE] = VIDEO1|videoPage;
     pageTable[VIDEO2/PAGE_MEM_SIZE] = VIDEO2|videoPage;
     pageTable[VIDEO3/PAGE_MEM_SIZE] = VIDEO3|videoPage;
-
+    video_buf1 = (char *)VIDEO1;
+    video_buf2 = (char *)VIDEO2;
+    video_buf3 = (char *)VIDEO3;
     //the code below should clear all the video memories, if i know how to code correctly
     int j;
     for (i=0;i<NUM_COLS;i++){
         for (j=0;j<NUM_ROWS;j++){
-            *video_buf1++ =' ';
-            *video_buf1++ = ATTRIB;
-            *video_buf2++ =' ';
-            *video_buf2++ = ATTRIB;
-            *video_buf3++=' ';
-            *video_buf3++ = ATTRIB;
+            *(video_buf1++) =' ';
+            *(video_buf1++) = ATTRIB;
+            *(video_buf2++) =' ';
+            *(video_buf2++) = ATTRIB;
+            *(video_buf3++)=' ';
+            *(video_buf3++) = ATTRIB;
         }
     }
 

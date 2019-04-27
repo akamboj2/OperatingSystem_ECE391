@@ -167,9 +167,6 @@ void entry(unsigned long magic, unsigned long addr) {
 	outb(0x8B, 0x70);
 	outb(prev | 0x40, 0x71);*/
 
-
-    paging_init();
-
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... */
 
@@ -180,6 +177,9 @@ void entry(unsigned long magic, unsigned long addr) {
     //printf("Enabling Interrupts\n");
     sti();
     clear();
+    clear1();
+    clear2();
+    clear3();
     set_cursors(0,0);
     update_cursor(0,0);
 

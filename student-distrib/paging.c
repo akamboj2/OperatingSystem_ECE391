@@ -1,5 +1,7 @@
 #include "paging.h"
 #include "lib.h"
+#include "constants.h"
+
 
 
 //NEED 4KB alignment for PT and PD arrays
@@ -30,6 +32,35 @@ void paging_init() {
     pageDirectory[0] =  (unsigned)pageTable | page;
     pageDirectory[1] = KERNEL_PHYS_ADDR | kernelPage; //how does processor know this block only has 1 table?--bc of bit 7 pf kernelpage(set indicates 4 MB)
     pageTable[VIDEO/PAGE_MEM_SIZE] = VIDEO|videoPage; //addes page-table base address (bits 31-12) to videoPage (bits 8-0), (we ignore 11-9)
+    //below maps virtual to physcal at the pages following the original video memory
+    pageTable[VIDEO1/PAGE_MEM_SIZE] = VIDEO1|kernelPage;
+    pageTable[VIDEO2/PAGE_MEM_SIZE] = VIDEO2|kernelPage;
+    pageTable[VIDEO3/PAGE_MEM_SIZE] = VIDEO3|kernelPage;
+
+
+
+    //the code below should clear all the video memories, if i know how to code correctly
+    /*int32_t j;
+    for (j = 0; j < NUM_ROWS * NUM_COLS; j++) {
+        *(uint8_t *)(video_buf1 + (j << 1)) = ' ';
+        *(uint8_t *)(video_buf1 + (j << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_buf2 + (j << 1)) = ' ';
+        *(uint8_t *)(video_buf2 + (j << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_buf3 + (j << 1)) = ' ';
+        *(uint8_t *)(video_buf3 + (j << 1) + 1) = ATTRIB;
+    }*/
+    /*int j;
+    for (i=0;i<NUM_COLS;i++){
+        for (j=0;j<NUM_ROWS;j++){
+            *(video_buf1++) =' ';
+            *(video_buf1++) = ATTRIB;
+            *(video_buf2++) =' ';
+            *(video_buf2++) = ATTRIB;
+            *(video_buf3++) =' ';
+            *(video_buf3++) = ATTRIB;
+        }
+    }*/
+
 
     //xFFFFF000 is used to to only set the 20 MSb of pageDirectory address to top 20 bits in CR3
     asm volatile("MOVL %%CR3, %%edx; ANDL $0x00000FFF, %%edx; ADDL %0,%%edx; MOVL %%edx, %%CR3;" //need double %% for registers single % to specify input/output from C

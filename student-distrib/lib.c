@@ -3,26 +3,17 @@
 
 #include "lib.h"
 #include "sys_calls.h"
-
-
-#define VIDEO       0xB8000
-#define VIDEO1      0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
-#define VIDEO2      0xC0000
-#define VIDEO3      0xC1000
-
-#define NUM_COLS    80
-#define NUM_ROWS    25
-#define ATTRIB      0x7
+#include "constants.h"
 
 int curr_terminal = 1;
 
 static int screen_x;
 static int screen_y;
-static char* video_mem = (char *)VIDEO;
 
-char* video_buf1 = (char *)VIDEO1;
-char* video_buf2 = (char *)VIDEO2;
-char* video_buf3 = (char *)VIDEO3;
+static char* video_mem = (char *)VIDEO;
+static char* video_buf1 = (char *)VIDEO1;
+static char* video_buf2 = (char *)VIDEO2;
+static char* video_buf3 = (char *)VIDEO3;
 
 //these have been moved to paging.c so they can be mapped as pages and initialized there
 // char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
@@ -46,6 +37,31 @@ void clear(void) {
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
 }
+
+void clear1(void) {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_buf1 + (i << 1)) = ' ';
+        *(uint8_t *)(video_buf1 + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+void clear2(void) {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_buf2 + (i << 1)) = ' ';
+        *(uint8_t *)(video_buf2 + (i << 1) + 1) = ATTRIB;
+    }
+}
+
+void clear3(void) {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_buf3 + (i << 1)) = ' ';
+        *(uint8_t *)(video_buf3 + (i << 1) + 1) = ATTRIB;
+    }
+}
+
 
 /* void scroll(void);
  * Inputs: void
@@ -103,16 +119,11 @@ void switch_terminal(int from, int to) {
   set_cursors(screen_x, screen_y);
 
   for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-      f[i] = *(uint8_t *)(video_mem + (i << 1));
-      *(uint8_t *)(video_mem + (i << 1)) = t[i];
-      *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
-  }
-
-  if(highest_terminal_processes[1] == 0 && to == 2){
-      execute((const uint8_t*)("shell"));
-  }
-  if(highest_terminal_processes[2] == 0 && to == 3){
-      execute((const uint8_t*)("shell"));
+      *(uint8_t *)(f + (i << 1)) = *(uint8_t *)(video_mem + (i << 1));
+      *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(t + (i << 1));
+      //f[i] = *(uint8_t *)(video_mem + (i << 1));
+      //*(uint8_t *)(video_mem + (i << 1)) = t[i];
+      //*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
   }
 }
 

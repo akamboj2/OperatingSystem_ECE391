@@ -15,15 +15,20 @@ int total_terminal = 0;
 
 void pit_handler(){
   send_eoi(0);
-  if(total_terminal < 2){
-    execute((const uint8_t*)("shell"));
-    curr_terminal++;
+  if(total_terminal < 3){
     total_terminal++;
+    if(total_terminal-1 != 0){
+      switch_terminal(total_terminal-1, total_terminal);
+    }
+    execute((const uint8_t*)("shell"));
     return;
+  }else if(total_terminal == 3){
+    switch_terminal(total_terminal, 1);
+    total_terminal++;
   }
 
 
-  printf("PIT INTERRUPT!\n");
+  //printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
   Utilize the kernel stack (think about what you did for HALT)
   u Again you will be using assembly to do the context switch

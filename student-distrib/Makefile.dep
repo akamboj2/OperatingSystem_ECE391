@@ -10,7 +10,8 @@ kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
   sys_calls.h scheduler.h
 keyboard.o: keyboard.c keyboard.h types.h x86_desc.h idt.h lib.h i8259.h \
   sys_calls.h filesys.h rtc.h
-lib.o: lib.c lib.h types.h sys_calls.h filesys.h rtc.h keyboard.h
+lib.o: lib.c lib.h types.h sys_calls.h filesys.h rtc.h keyboard.h \
+  constants.h
 paging.o: paging.c paging.h constants.h types.h lib.h
 rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
   sys_calls.h filesys.h keyboard.h i8259.h

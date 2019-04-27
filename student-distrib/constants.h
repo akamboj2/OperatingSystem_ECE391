@@ -15,5 +15,8 @@
 #define USER_VID_ADDR           0x08400000 //this is just one directory entry after prog load addr
                                             //^note this is also pg directory size
 #define VIDEO                   0xB8000     //note: this may already be defined in lib.c
+#define VIDEO1                  0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
+#define VIDEO2                  0xBA000
+#define VIDEO3                  0xBB000
 #define KERNEL_PHYS_ADDR        0x400000    //1048576 = 2^20: 4 MB
 #endif /* CONSTANTS_H */

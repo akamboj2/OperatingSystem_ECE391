@@ -7,7 +7,17 @@
 
 #include "types.h"
 
+#define NUM_COLS    80
+#define NUM_ROWS    25
+#define ATTRIB      0x7
+
+
 extern int curr_terminal;
+/*extern char* video_mem;
+extern char* video_buf1;
+extern char* video_buf2;
+extern char* video_buf3;*/
+
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
@@ -16,9 +26,13 @@ int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
 void clear(void);
+void clear1(void);
+void clear2(void);
+void clear3(void);
 
 //used created functions
 void scroll(void);
+void switch_terminal(int from, int to);
 int get_screenx();
 int get_screeny();
 void set_cursors(int pos_x, int pos_y);

@@ -1,4 +1,6 @@
 #include "paging.h"
+#include "lib.h"
+
 
 //NEED 4KB alignment for PT and PD arrays
 //Needed for: CR3 Register, and table entries (PTE AND PDE) assume alignment that's why they only use

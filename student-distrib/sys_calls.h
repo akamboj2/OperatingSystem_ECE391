@@ -28,6 +28,11 @@ int32_t vidmap (uint8_t** screen_start);
 int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
 
+extern int32_t process_count;
+extern int32_t highest_terminal_processes[3];
+extern int32_t process_per_terminal[3];
+extern int32_t pcb_slots[6];
+
 
 typedef struct ftable{
     int32_t (*read)(int32_t,void*,int32_t);
@@ -55,8 +60,6 @@ typedef struct fd_struct{
 
 
 typedef struct pcb_t pcb_t;
-extern int32_t curr_process;
-
 struct pcb_t{
   fd_struct file_array[MAX_OPEN_FILES];
   int32_t file_arr_size;

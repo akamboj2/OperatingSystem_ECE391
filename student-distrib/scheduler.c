@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "types.h"
+#include "sys_calls.h"
 
 /*pit handler
  *
@@ -10,7 +11,18 @@
  * Outputs: executes at pit interrupt, does scheduling!
  * Side Effects: None
  */
+int total_terminal = 0;
+
 void pit_handler(){
+  send_eoi(0);
+  if(total_terminal < 2){
+    execute((const uint8_t*)("shell"));
+    curr_terminal++;
+    total_terminal++;
+    return;
+  }
+
+
   printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
   Utilize the kernel stack (think about what you did for HALT)
@@ -25,7 +37,7 @@ void pit_handler(){
   u Update running video coordinates
   u Restore next process’ esp/ebp
   */
-  send_eoi(0);
+
 
 }
 

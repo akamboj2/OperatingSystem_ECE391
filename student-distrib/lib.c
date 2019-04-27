@@ -2,15 +2,38 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "sys_calls.h"
+
 
 #define VIDEO       0xB8000
+#define VIDEO1      0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
+#define VIDEO2      0xC0000
+#define VIDEO3      0xC1000
+
 #define NUM_COLS    80
 #define NUM_ROWS    25
 #define ATTRIB      0x7
 
+int curr_terminal = 1;
+
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+
+char* video_buf1 = (char *)VIDEO1;
+char* video_buf2 = (char *)VIDEO2;
+char* video_buf3 = (char *)VIDEO3;
+
+//these have been moved to paging.c so they can be mapped as pages and initialized there
+// char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
+// char video_buf2[NUM_ROWS * NUM_COLS] = {' '};
+// char video_buf3[NUM_ROWS * NUM_COLS] = {' '};
+
+int t1_pos[2] = {0,0};
+int t2_pos[2] = {0,0};
+int t3_pos[2] = {0,0};
+
+
 
 /* void clear(void);
  * Inputs: void
@@ -39,6 +62,60 @@ void scroll(void) {
         *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
     }
 }
+
+void switch_terminal(int from, int to) {
+  int32_t i;
+  char * f;
+  char * t;
+  if(from == 1){
+    f = video_buf1;
+    t1_pos[0] = screen_x;
+    t1_pos[1] = screen_y;
+  }
+  else if(from == 2){
+    f = video_buf2;
+    t2_pos[0] = screen_x;
+    t2_pos[1] = screen_y;
+  }
+  else if(from == 3){
+    f = video_buf3;
+    t3_pos[0] = screen_x;
+    t3_pos[1] = screen_y;
+  }
+  if(to == 1){
+    t = video_buf1;
+    screen_x = t1_pos[0];
+    screen_y = t1_pos[1];
+  }
+  else if(to == 2){
+    t = video_buf2;
+    screen_x = t2_pos[0];
+    screen_y = t2_pos[1];
+  }
+  else if(to == 3){
+    t = video_buf3;
+    screen_x = t3_pos[0];
+    screen_y = t3_pos[1];
+  }
+
+  curr_terminal = to;
+  update_cursor(screen_x, screen_y);
+  set_cursors(screen_x, screen_y);
+
+  for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+      f[i] = *(uint8_t *)(video_mem + (i << 1));
+      *(uint8_t *)(video_mem + (i << 1)) = t[i];
+      *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+  }
+
+  if(highest_terminal_processes[1] == 0 && to == 2){
+      execute((const uint8_t*)("shell"));
+  }
+  if(highest_terminal_processes[2] == 0 && to == 3){
+      execute((const uint8_t*)("shell"));
+  }
+}
+
 
 /* int get_screenx();
  * Inputs: none

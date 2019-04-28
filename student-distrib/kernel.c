@@ -180,8 +180,8 @@ void entry(unsigned long magic, unsigned long addr) {
     clear1();
     clear2();
     clear3();
-    set_cursors(0,0);
-    update_cursor(0,0);
+    //set_cursors(0,0);
+    //update_cursor(0,0);
 
 	cli();
 	//enable_irq(8);

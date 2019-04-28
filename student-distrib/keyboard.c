@@ -76,8 +76,9 @@ void keyboard_handler(){
             'X','C','V','B','N','M','<','>','?'};
 
 	unsigned char c = inb(keyboard_port);
+	//send_eoi(1);
+	cli();
 	send_eoi(1);
-
 
   if(c == SHIFT_PRESSED1 || c == SHIFT_PRESSED2){	//shift pressed
     shift_key = TRUE;
@@ -205,7 +206,8 @@ void keyboard_handler(){
       putc2(print_char);
     }
 	}
-
+sti();
+//send_eoi(1);
 }
 
 /*terminal_open
@@ -266,6 +268,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
  * Side Effects: clears prior state of video memory
  */
 int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
+	cli();
 	unsigned char* buf = (unsigned char*) buf_t;
 	if(buf == NULL || nbytes < 0)
 		return -1;
@@ -274,5 +277,7 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 	//if(nbytes < 0 || nbytes >= sizeof(buf)) //less than or equal to account for length the null char adds
 		//return -1;
 		//printf('\n');
-	return print_withoutnull((int8_t*)buf, nbytes);
+	int x = print_withoutnull((int8_t*)buf, nbytes);
+	sti();
+	return x;
 }

@@ -73,8 +73,8 @@ int32_t halt (uint8_t status){
   else{
     highest_terminal_processes[curr_terminal-1] = 0;
     clear();
-    set_cursors(0,0);			//reset cursor
-    update_cursor(0,0);
+    //set_cursors(0,0);			//reset cursor
+    //update_cursor(0,0);
     execute((const uint8_t*)("shell"));
     //return 0;
   }

@@ -19,7 +19,7 @@ int total_terminal = 0;
  * Side Effects: None
  */
 void pit_handler(){
-  send_eoi(0);
+  //send_eoi(0);
 
   //printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
@@ -36,6 +36,8 @@ void pit_handler(){
   u Restore next process’ esp/ebp
   */
 cli();
+send_eoi(0);
+
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
   //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
 
@@ -62,32 +64,39 @@ cli();
       break;
    }
  }
-sti();
+//sti();
  if(total_terminal < 3){
+
    total_terminal++;
    if(total_terminal-1 != 0){
      switch_terminal(total_terminal-1, total_terminal);
    }
+   update_cursor(0,0);
+   set_cursors(0,0);
 
    if (total_terminal!=1){ //don't update pcb for 0th process (there is none)
    //store tss for current process
-   pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
-   pcb_curr_process->esp0 = tss.esp0;
+     pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
+     pcb_curr_process->esp0 = tss.esp0;
 
-   //save previous ebp, restore new ebp
-   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
+     //save previous ebp, restore new ebp
+     asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
 
-   curr_scheduled=next_scheduled;
+     curr_scheduled=next_scheduled;
   }
-
+   sti();
    execute((const uint8_t*)("shell"));
    return;
- }else if(total_terminal == 3){
+ }
+ else if(total_terminal == 3){
+   sti();
    switch_terminal(total_terminal, 1);
    total_terminal++;
    next_scheduled=1;
    curr_scheduled=3;
+   return;
  }
+ sti();
 
   //update program image in virtual to point to correct physical
   pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;

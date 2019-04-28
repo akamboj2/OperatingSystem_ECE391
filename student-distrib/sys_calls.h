@@ -5,6 +5,7 @@
 #include "filesys.h"
 #include "rtc.h"
 #include "keyboard.h"
+#include "constants.h"
 
 #define FD_FLAG_PRESENT 1
 #define FD_FLAG_FILE 2
@@ -29,9 +30,9 @@ int32_t set_handler (int32_t signum, void* handler_address);
 int32_t sigreturn (void);
 
 extern int32_t process_count;
-extern int32_t highest_terminal_processes[3];
-extern int32_t process_per_terminal[3];
-extern int32_t pcb_slots[6];
+extern int32_t highest_terminal_processes[NUM_T];
+extern int32_t process_per_terminal[NUM_T];
+extern int32_t pcb_slots[MAX_PROCESS_COUNT];
 
 
 typedef struct ftable{

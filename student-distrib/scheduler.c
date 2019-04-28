@@ -9,7 +9,7 @@
 #include "x86_desc.h"
 
 
-int curr_scheduled=1; //either 1,2 or 3 (not 0)
+int curr_scheduled = 1; //either 1,2 or 3 (not 0)
 int total_terminal = 0;
 int init_flag = 0;
 int switch_flag = 0;
@@ -38,18 +38,18 @@ void pit_handler(){
   u Restore next process’ esp/ebp
   */
   send_eoi(0);
-    switch (switch_flag)
+  switch (switch_flag)
   {
     case 1:
-      switch_terminal(curr_terminal, 1);
+      switch_terminal(curr_terminal, T1);
       switch_flag = 0;
       break;
     case 2:
-      switch_terminal(curr_terminal, 2);
+      switch_terminal(curr_terminal, T2);
       switch_flag = 0;
       break;
     case 3:
-      switch_terminal(curr_terminal, 3);
+      switch_terminal(curr_terminal, T3);
       switch_flag = 0;
       break;
   }
@@ -77,7 +77,7 @@ void pit_handler(){
       break;
    }
  }
- if(total_terminal < 3){
+ if(total_terminal < T3){
 
    total_terminal++;
    if(total_terminal-1 != 0){
@@ -99,15 +99,15 @@ void pit_handler(){
    execute((const uint8_t*)("shell"));
    return;
  }
- else if(total_terminal == 3){
-   switch_terminal(total_terminal, 1);
+ else if(total_terminal == T3){
+   switch_terminal(total_terminal, T1);
    total_terminal++;
-   next_scheduled=1;
-   curr_scheduled=3;
+   next_scheduled=T1;
+   curr_scheduled=T3;
    init_flag = 1;
    return;
  }
- 
+
 
   //update program image in virtual to point to correct physical
   pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
@@ -132,7 +132,7 @@ void pit_handler(){
   //asm volatile("MOVL %%ebp, %0;" : "=r" (pcb_curr_process->ebp_scheduler));
   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
   asm volatile("MOVL %0, %%ebp;" : :"r" (pcb_to_be_scheduled->ebp_scheduler));
-  
+
 
   //when returns it should jmp eip to next processes return from pit interrupt bc we switched stacks
 }
@@ -147,15 +147,15 @@ void pit_init(){
   //see https://wiki.osdev.org/PIT for specifications
   //see https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer for example code of setting 100 Hz freq
   enable_irq(0);      //enable pit or interval timer
-  int8_t pit_status= 0x36, //channel bits (6-7), access mode lobyte/hibyte (bits4-5), mode 3 square wave generator (bits 1-3), bit 0 binary mode
+  int8_t pit_status= PIT_STATUS, //channel bits (6-7), access mode lobyte/hibyte (bits4-5), mode 3 square wave generator (bits 1-3), bit 0 binary mode
      out_highB,out_lowB;
     //to make the PIT fire at a certain frequency f, you need to figure out an integer x, such that 1193182 / x = f.
     //If a frequency of 100 hz is desired, we see that the necessary divisor is 1193182 / 100 = 11931
-  int32_t  freq = 100, numerator=1193182;
+  int32_t freq = PIT_FREQ, numerator=PIT_NUM;
   int16_t out_val;
   out_val = numerator/freq;
-  out_highB= (out_val & 0xFF00)>>8;
-  out_lowB= out_val&0xFF;
+  out_highB= (out_val & PIT_HIGH)>>PIT_SHIFT;
+  out_lowB= out_val&PIT_LOW;
   outb(PIT_REG_MODE,pit_status);
   /* "For the "lobyte/hibyte" mode, 16 bits are always transferred as a pair, with the
   * lowest 8 bits followed by the highest 8 bits (both 8 bit transfers are to the same IO port,

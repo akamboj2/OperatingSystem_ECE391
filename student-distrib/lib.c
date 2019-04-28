@@ -9,8 +9,8 @@
 int curr_terminal = 1;
 
 
-static int screen_x[3] = {0,0,0};
-static int screen_y[3] = {0,0,0};
+static int screen_x[NUM_T] = {0,0,0};
+static int screen_y[NUM_T] = {0,0,0};
 
 char* video_mem = (char *)VIDEO;
 char* video_buf1 = (char *)VIDEO1;
@@ -21,10 +21,6 @@ char* video_buf3 = (char *)VIDEO3;
 // char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
 // char video_buf2[NUM_ROWS * NUM_COLS] = {' '};
 // char video_buf3[NUM_ROWS * NUM_COLS] = {' '};
-
-int t1_pos[2] = {0,0};
-int t2_pos[2] = {0,0};
-int t3_pos[2] = {0,0};
 
 /* void clear(void);
  * Inputs: void
@@ -96,35 +92,20 @@ void switch_terminal(int from, int to) {
   int32_t i;
   char * f;
   char * t;
-  if(from == 1){
+  if(from == T1){
     f = video_buf1;
-    //t1_pos[0] = screen_x;
-    //t1_pos[1] = screen_y;
-  }
-  else if(from == 2){
+  }else if(from == T2){
     f = video_buf2;
-    //t2_pos[0] = screen_x;
-    //t2_pos[1] = screen_y;
-  }
-  else if(from == 3){
+  }else if(from == T3){
     f = video_buf3;
-    //t3_pos[0] = screen_x;
-    //t3_pos[1] = screen_y;
   }
-  if(to == 1){
+
+  if(to == T1){
     t = video_buf1;
-    //screen_x = t1_pos[0];
-    //screen_y = t1_pos[1];
-  }
-  else if(to == 2){
+  }else if(to == T2){
     t = video_buf2;
-    //screen_x = t2_pos[0];
-    //screen_y = t2_pos[1];
-  }
-  else if(to == 3){
+  }else if(to == T3){
     t = video_buf3;
-    //screen_x = t3_pos[0];
-    //screen_y = t3_pos[1];
   }
 
   curr_terminal = to;
@@ -132,8 +113,8 @@ void switch_terminal(int from, int to) {
 //   while(curr_terminal != curr_scheduled && init_flag == 1) {
 
 //   }
-  
-  
+
+
   update_cursor(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
   //set_cursors(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
   for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {

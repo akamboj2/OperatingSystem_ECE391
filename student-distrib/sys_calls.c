@@ -21,9 +21,9 @@ static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&termi
  //curr_process = 0;
 int32_t user_vid_mem=0;
 int32_t process_count = 0;
-int32_t highest_terminal_processes[3] = {0,0,0};
-int32_t pcb_slots[6] = {0,0,0,0,0,0};
-int32_t process_per_terminal[3] = {0,0,0};
+int32_t highest_terminal_processes[NUM_T] = {0,0,0};
+int32_t pcb_slots[MAX_PROCESS_COUNT] = {0,0,0,0,0,0};
+int32_t process_per_terminal[NUM_T] = {0,0,0};
 
 
 /*getPCB
@@ -121,7 +121,7 @@ int32_t execute (const uint8_t* command){
   if(!command){
     return -1;
   }
-  if(process_count >= 6 /*|| process_per_terminal[curr_terminal-1] >= 4*/){
+  if(process_count >= MAX_PROCESS_COUNT){
     return -1;
   }
 
@@ -157,7 +157,7 @@ int32_t execute (const uint8_t* command){
   process_per_terminal[curr_terminal-1]++;
 
   int pcb_index = 0;
-  while(pcb_index < 6){
+  while(pcb_index < MAX_PROCESS_COUNT){
     if(pcb_slots[pcb_index] == 0)
       break;
     pcb_index++;

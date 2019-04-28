@@ -19,4 +19,12 @@
 #define VIDEO2                  0xBA000
 #define VIDEO3                  0xBB000
 #define KERNEL_PHYS_ADDR        0x400000    //1048576 = 2^20: 4 MB
+
+#define NUM_T                   3
+#define T1                      1
+#define T2                      2
+#define T3                      3
+
+#define MAX_PROCESS_COUNT       6
+
 #endif /* CONSTANTS_H */

@@ -171,7 +171,8 @@ void keyboard_handler(){
     }
   }*/
   else if(c == BACKSPACE && keyboard_buffer_index>0){		//adds backspace by overwriting previous char with a space
-      set_cursors(get_screenx()-1, get_screeny());
+		if (get_screenx()==0 && get_screeny()==0) return; //fixes bug of type,ctrl-l, backspace-->fault
+			set_cursors(get_screenx()-1, get_screeny());
       putc2(' ');
       set_cursors(get_screenx()-1, get_screeny());
       update_cursor(get_screenx(), get_screeny());

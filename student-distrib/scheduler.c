@@ -11,6 +11,8 @@
 
 int curr_scheduled=1; //either 1,2 or 3 (not 0)
 int total_terminal = 0;
+int init_flag = 0;
+int switch_flag = 0;
 
 /*pit handler
  *
@@ -35,8 +37,22 @@ void pit_handler(){
   u Update running video coordinates
   u Restore next process’ esp/ebp
   */
-cli();
-send_eoi(0);
+  send_eoi(0);
+    switch (switch_flag)
+  {
+    case 1:
+      switch_terminal(curr_terminal, 1);
+      switch_flag = 0;
+      break;
+    case 2:
+      switch_terminal(curr_terminal, 2);
+      switch_flag = 0;
+      break;
+    case 3:
+      switch_terminal(curr_terminal, 3);
+      switch_flag = 0;
+      break;
+  }
 
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
   //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
@@ -46,7 +62,7 @@ send_eoi(0);
  if (next_scheduled==curr_terminal){
   //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
   pgTbl_vidMem[0]=VIDEO|VID_PAGE; //this is so that the user (calling vidmap syscall) can print
-  video_mem = (char *)VIDEO;  //this is so that printf/puts/putc (which dereferences vid_mem) can print
+  video_mem = (char *)VIDEO; //this is so that printf/puts/putc (which dereferences vid_mem) can print
  }else{
    //otherwise we need to update it to point to the correct video buffer in physical memory
    switch(next_scheduled){
@@ -84,19 +100,18 @@ send_eoi(0);
 
      curr_scheduled=next_scheduled;
   }
-   sti();
    execute((const uint8_t*)("shell"));
    return;
  }
  else if(total_terminal == 3){
-   sti();
    switch_terminal(total_terminal, 1);
    total_terminal++;
    next_scheduled=1;
    curr_scheduled=3;
+   init_flag = 1;
    return;
  }
- sti();
+ 
 
   //update program image in virtual to point to correct physical
   pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
@@ -118,10 +133,12 @@ send_eoi(0);
   //NOTE: THIS LINE MUST BE BEFORE THE ASM VOLATILE CODE BELOW (otherwise unexpected behavior)
   curr_scheduled=next_scheduled;
 
+
   //save previous ebp, restore new ebp
   //asm volatile("MOVL %%ebp, %0;" : "=r" (pcb_curr_process->ebp_scheduler));
   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
   asm volatile("MOVL %0, %%ebp;" : :"r" (pcb_to_be_scheduled->ebp_scheduler));
+  
 
   //when returns it should jmp eip to next processes return from pit interrupt bc we switched stacks
 }

@@ -92,6 +92,7 @@ void scroll(int x) {
 }
 
 void switch_terminal(int from, int to) {
+  cli();
   int32_t i;
   char * f;
   char * t;
@@ -127,9 +128,14 @@ void switch_terminal(int from, int to) {
   }
 
   curr_terminal = to;
+//   sti();
+//   while(curr_terminal != curr_scheduled && init_flag == 1) {
+
+//   }
+  
+  
   update_cursor(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
   //set_cursors(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
-
   for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
       *(uint8_t *)(f + (i << 1)) = *(uint8_t *)(VIDEO + (i << 1));
       *(uint8_t *)(VIDEO + (i << 1)) = *(uint8_t *)(t + (i << 1));
@@ -137,6 +143,7 @@ void switch_terminal(int from, int to) {
       //*(uint8_t *)(video_mem + (i << 1)) = t[i];
       //*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
   }
+  sti();
 }
 
 
@@ -390,9 +397,9 @@ void putc2(uint8_t c) {
         screen_x[curr_terminal-1] %= NUM_COLS;
     }
     if(screen_y[curr_terminal-1] >= NUM_ROWS){
-      cli();
+      //cli();
       scroll(2);
-      sti();
+      //sti();
       screen_y[curr_terminal-1]--;
       screen_x[curr_terminal-1] = 0;
     }

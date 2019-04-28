@@ -285,16 +285,18 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
+  cli();
   pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0)
-    return -1;
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0){
+    sti();
+    return -1;}
 
   if(cur_pcb->file_array[fd].flags & FD_FLAG_FILE)
-    return -1;
+    {sti();return -1;}
 
   //writes data from buffer to termianl
   int32_t position = cur_pcb->file_array[fd].fops_table->write(fd, buf, nbytes);
-
+  sti();
   return position;
 }
 

@@ -77,7 +77,6 @@ void keyboard_handler(){
 
 	unsigned char c = inb(keyboard_port);
 	//send_eoi(1);
-	cli();
 	send_eoi(1);
 
   if(c == SHIFT_PRESSED1 || c == SHIFT_PRESSED2){	//shift pressed
@@ -123,7 +122,8 @@ void keyboard_handler(){
 			else if(curr_terminal == 3)
 				kb3_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb1_pos;
-			switch_terminal(curr_terminal, 1); //(from,to)
+			//switch_terminal(curr_terminal, 1); //(from,to)
+			switch_flag = 1;
 		}
 		else if(c == _F2 && curr_terminal != 2){
 			for(j = 0; j < KB_BUF_SIZE; j++){
@@ -135,7 +135,8 @@ void keyboard_handler(){
 			else if(curr_terminal == 3)
 				kb3_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb2_pos;
-			switch_terminal(curr_terminal, 2); //(from,to)
+			//switch_terminal(curr_terminal, 2); //(from,to)
+			switch_flag = 2;
 		}
 		else if(c == _F3 && curr_terminal != 3){
 			for(j = 0; j < KB_BUF_SIZE; j++){
@@ -147,7 +148,8 @@ void keyboard_handler(){
 			else if(curr_terminal == 2)
 				kb2_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb3_pos;
-			switch_terminal(curr_terminal, 3); //(from,to)
+			//switch_terminal(curr_terminal, 3); //(from,to)
+			switch_flag = 3;
 		}
 	}
   else if(c == SPACE){	//outputs space
@@ -206,7 +208,6 @@ void keyboard_handler(){
       putc2(print_char);
     }
 	}
-sti();
 //send_eoi(1);
 }
 
@@ -268,7 +269,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
  * Side Effects: clears prior state of video memory
  */
 int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
-	cli();
+	
 	unsigned char* buf = (unsigned char*) buf_t;
 	if(buf == NULL || nbytes < 0)
 		return -1;
@@ -278,6 +279,5 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 		//return -1;
 		//printf('\n');
 	int x = print_withoutnull((int8_t*)buf, nbytes);
-	sti();
 	return x;
 }

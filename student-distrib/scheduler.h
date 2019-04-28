@@ -6,6 +6,9 @@
 #define PIT_CHAN0 0x40 //0x40         Channel 0 data port (read/write)
 
 extern int curr_scheduled;
+int total_terminal;
+extern int init_flag;
+extern int switch_flag;
 
 void pit_handler();
 void pit_init();

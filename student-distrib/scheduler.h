@@ -12,7 +12,7 @@
 #define PIT_SHIFT 8
 
 extern int curr_scheduled;
-int total_terminal;
+extern int total_terminal;
 extern int init_flag;
 extern int switch_flag;
 

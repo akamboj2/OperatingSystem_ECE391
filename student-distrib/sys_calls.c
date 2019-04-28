@@ -27,9 +27,9 @@ int32_t process_per_terminal[NUM_T] = {0,0,0};
 
 
 /*getPCB
- * Description: Gets curr process' pcb
+ * Description: Gets curr terminal's child most process pcb
  * Inputs: number of curr process
- * Outputs/Return Values: return pointer to curr process' pcb
+ * Outputs/Return Values: return pointer to pcb
  * Side Effects: none
  */
 pcb_t * getPCB(int32_t curr){
@@ -70,11 +70,11 @@ int32_t halt (uint8_t status){
     highest_terminal_processes[curr_terminal-1] = pcb_to_be_halted->parent_task->process_num;
     tss.esp0 = pcb_to_be_halted->parent_task->esp0;
   }
-  else{
+  else{ //to restart a shell if it is parent most process in a terminal
     highest_terminal_processes[curr_terminal-1] = 0;
     clear();
-    //set_cursors(0,0);			//reset cursor
-    //update_cursor(0,0);
+    set_cursors(0,0);			//reset cursor
+    update_cursor(0,0);
     execute((const uint8_t*)("shell"));
     //return 0;
   }
@@ -118,25 +118,23 @@ int32_t execute (const uint8_t* command){
   //command = "fish";
   //printf("%c", *command);
 
-  if(!command){
+  if(!command){ //check to make sure that input is valid
     return -1;
   }
-  if(process_count >= MAX_PROCESS_COUNT){
-    return -1;
+  if(process_count >= MAX_PROCESS_COUNT){ //check to prevent opening more than 6 processes
+    printf("MAX PROCESSES REACHED\n");
+    return 0;
   }
 
   uint8_t filename[_4B] = {'\0'};
   uint8_t data[_4B] = {'\0'};
 
   //parse first argument
-
   while(command[i] != '\0' && command[i] != ' ' && i<_4B){
     //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;
   }
-
-
 
   //ensure that the file actually exists
   dentry_t temp;
@@ -204,12 +202,13 @@ int32_t execute (const uint8_t* command){
   if(read_data(temp.inode_num, 0, (uint8_t *)PROG_LOAD_ADDR, nbytes) == -1)
     return -1;
 
-
+    //set parent pcb if exits, otherwise set parent to null
   if(highest_terminal_processes[curr_terminal-1] != 0){
     pcb->parent_task =  (pcb_t *)(_8MB - (highest_terminal_processes[curr_terminal-1])*_8KB);
   }
   else pcb->parent_task = NULL;
 
+  //update the process number of the child most process in a terminal
   highest_terminal_processes[curr_terminal-1] = pcb_index + 1;
 
   //Set up the PCB
@@ -230,10 +229,6 @@ int32_t execute (const uint8_t* command){
   for(k = STDI_O; k < MAX_OPEN_FILES; k++){
     pcb->file_array[k].flags = 0;
   }
-
-
-
-
 
   //Context Switch
   tss.ss0 = KERNEL_DS;

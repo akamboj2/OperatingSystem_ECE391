@@ -38,6 +38,7 @@ void pit_handler(){
   u Restore next process’ esp/ebp
   */
   send_eoi(0);
+  //switch between terminals if flag enabled
   switch (switch_flag)
   {
     case 1:
@@ -77,8 +78,9 @@ void pit_handler(){
       break;
    }
  }
- if(total_terminal < T3){
 
+ //logic to create 3 initial terminals
+ if(total_terminal < T3){
    total_terminal++;
    if(total_terminal-1 != 0){
      switch_terminal(total_terminal-1, total_terminal);
@@ -99,7 +101,7 @@ void pit_handler(){
    execute((const uint8_t*)("shell"));
    return;
  }
- else if(total_terminal == T3){
+ else if(total_terminal == T3){ //if all 3 shells created, switch back to first terminal
    switch_terminal(total_terminal, T1);
    total_terminal++;
    next_scheduled=T1;

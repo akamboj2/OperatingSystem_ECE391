@@ -34,6 +34,10 @@ void clear(void) {
     }
 }
 
+/* void clear1(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears video memory for terminal 1 */
 void clear1(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
@@ -42,6 +46,10 @@ void clear1(void) {
     }
 }
 
+/* void clear2(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears video memory for terminal 2 */
 void clear2(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
@@ -50,6 +58,10 @@ void clear2(void) {
     }
 }
 
+/* void clear3(void);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears video memory for terminal 3 */
 void clear3(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
@@ -59,13 +71,13 @@ void clear3(void) {
 }
 
 
-/* void scroll(void);
- * Inputs: void
+/* void scroll(int x);
+ * Inputs: x - whether to scroll for current terminal or background process
  * Return Value: none
  * Function: Moves video memory up one row and clears bottom row */
 void scroll(int x) {
     int32_t i;
-    if(x == 1){
+    if(x == 0){
         for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
           *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1));
           *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
@@ -75,7 +87,7 @@ void scroll(int x) {
           *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
       }
     }
-    if(x == 2){
+    if(x == 1){
         for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
           *(uint8_t *)(VIDEO + (i << 1)) = *(uint8_t *)(VIDEO + ((i+NUM_COLS) << 1));
           *(uint8_t *)(VIDEO + (i << 1) + 1) = ATTRIB;
@@ -87,6 +99,10 @@ void scroll(int x) {
     }
 }
 
+/* void switch_terminal(int from, int to);
+ * Inputs: from - current terminal number, to - terminal to switch to
+ * Return Value: none
+ * Function: Switches video buffers from current terminal to next terminal */
 void switch_terminal(int from, int to) {
   cli();
   int32_t i;
@@ -109,20 +125,12 @@ void switch_terminal(int from, int to) {
   }
 
   curr_terminal = to;
-//   sti();
-//   while(curr_terminal != curr_scheduled && init_flag == 1) {
-
-//   }
-
 
   update_cursor(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
   //set_cursors(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
   for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
       *(uint8_t *)(f + (i << 1)) = *(uint8_t *)(VIDEO + (i << 1));
       *(uint8_t *)(VIDEO + (i << 1)) = *(uint8_t *)(t + (i << 1));
-      //f[i] = *(uint8_t *)(video_mem + (i << 1));
-      //*(uint8_t *)(video_mem + (i << 1)) = t[i];
-      //*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
   }
   sti();
 }
@@ -327,6 +335,23 @@ format_char_switch:
     return (buf - format);
 }
 
+/* Special printf() that prints to screen no matter what process running.
+ * Only supports the following format strings:
+ * %%  - print a literal '%' character
+ * %x  - print a number in hexadecimal
+ * %u  - print a number as an unsigned integer
+ * %d  - print a number as a signed integer
+ * %c  - print a character
+ * %s  - print a string
+ * %#x - print a number in 32-bit aligned hexadecimal, i.e.
+ *       print 8 hexadecimal digits, zero-padded on the left.
+ *       For example, the hex number "E" would be printed as
+ *       "0000000E".
+ *       Note: This is slightly different than the libc specification
+ *       for the "#" modifier (this implementation doesn't add a "0x" at
+ *       the beginning), but I think it's more flexible this way.
+ *       Also note: %x is the only conversion specifier that can use
+ *       the "#" modifier to alter output. */
 int32_t printf2(int8_t *format, ...) {
 
     /* Pointer to the format string */
@@ -439,7 +464,7 @@ format_char_switch:
 /* int32_t puts(int8_t* s);
  *   Inputs: int_8* s = pointer to a string of characters
  *   Return Value: Number of bytes written
- *    Function: Output a string to the console */
+ *    Function: Output a string to the video buffer of process running */
 int32_t puts(int8_t* s) {
     register int32_t index = 0;
     while (s[index] != '\0') {
@@ -449,6 +474,10 @@ int32_t puts(int8_t* s) {
     return index;
 }
 
+/* int32_t puts2(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console no matter what process running*/
 int32_t puts2(int8_t* s) {
     register int32_t index = 0;
     while (s[index] != '\0') {
@@ -461,7 +490,7 @@ int32_t puts2(int8_t* s) {
 /* void putc(uint8_t c);
  * Inputs: uint_8* c = character to print
  * Return Value: void
- *  Function: Output a character to the console */
+ *  Function: Output a character to the running process */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y[curr_scheduled-1]++;
@@ -475,7 +504,7 @@ void putc(uint8_t c) {
     }
     if(screen_y[curr_scheduled-1] >= NUM_ROWS){
       //cli();
-      scroll(1);
+      scroll(0);
       //sti();
       screen_y[curr_scheduled-1]--;
       screen_x[curr_scheduled-1] = 0;
@@ -484,6 +513,10 @@ void putc(uint8_t c) {
       update_cursor(screen_x[curr_scheduled-1], screen_y[curr_scheduled-1]);
 }
 
+/* void putc2(uint8_t c);
+ * Inputs: uint_8* c = character to print
+ * Return Value: void
+ *  Function: Output a character to the console */
 void putc2(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y[curr_terminal-1]++;
@@ -497,7 +530,7 @@ void putc2(uint8_t c) {
     }
     if(screen_y[curr_terminal-1] >= NUM_ROWS){
       //cli();
-      scroll(2);
+      scroll(1);
       //sti();
       screen_y[curr_terminal-1]--;
       screen_x[curr_terminal-1] = 0;

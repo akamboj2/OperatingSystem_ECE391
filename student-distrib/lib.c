@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "sys_calls.h"
 #include "constants.h"
+#include "scheduler.h"
 
 int curr_terminal = 1;
 
@@ -32,8 +33,8 @@ int t3_pos[2] = {0,0};
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(VIDEO + (i << 1)) = ' ';
+        *(uint8_t *)(VIDEO + (i << 1) + 1) = ATTRIB;
     }
 }
 
@@ -189,8 +190,11 @@ int32_t print_withoutnull(int8_t *buffer, int nbytes){
 int32_t putfile(int8_t* s, uint32_t length) {
     register int32_t index = 0;
     while (index <  length) {
-        if(s[index] != '\0')
-          putc(s[index]);
+        if(s[index] != '\0'){
+            if(curr_scheduled == curr_terminal)
+              putc2(s[index]);
+            else putc(s[index]);
+        }
         index++;
     }
     return index;
@@ -347,6 +351,26 @@ void putc(uint8_t c) {
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        screen_x++;
+        screen_y = (screen_y + (screen_x / NUM_COLS));
+        screen_x %= NUM_COLS;
+    }
+    if(screen_y >= NUM_ROWS){
+      scroll();
+      screen_y--;
+      screen_x = 0;
+    }
+    if(curr_scheduled == curr_terminal)
+      update_cursor(screen_x, screen_y);
+}
+
+void putc2(uint8_t c) {
+    if(c == '\n' || c == '\r') {
+        screen_y++;
+        screen_x = 0;
+    } else {
+        *(uint8_t *)(VIDEO + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(VIDEO + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
         screen_y = (screen_y + (screen_x / NUM_COLS));
         screen_x %= NUM_COLS;

@@ -5,7 +5,7 @@
 #define PIT_REG_MODE 0x43 //0x43         Mode/Command register (write only, a read is ignored)
 #define PIT_CHAN0 0x40 //0x40         Channel 0 data port (read/write)
 
-extern int curr_sheduled;
+extern int curr_scheduled;
 
 void pit_handler();
 void pit_init();

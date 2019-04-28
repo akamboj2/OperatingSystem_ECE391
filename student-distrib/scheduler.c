@@ -35,7 +35,7 @@ void pit_handler(){
   u Update running video coordinates
   u Restore next process’ esp/ebp
   */
-
+cli();
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
   //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
 
@@ -62,7 +62,7 @@ void pit_handler(){
       break;
    }
  }
-
+sti();
  if(total_terminal < 3){
    total_terminal++;
    if(total_terminal-1 != 0){
@@ -93,10 +93,10 @@ void pit_handler(){
   pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
 
   //flush tlb
-  cli();
+  //cli();
   asm volatile ("MOVL %CR3, %eax;");
   asm volatile ("MOVL %eax, %CR3;");
-  sti();
+  //sti();
 
   //store tss for current process
   pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);

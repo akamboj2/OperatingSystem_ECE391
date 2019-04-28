@@ -4,6 +4,7 @@
 #include "lib.h"
 #include "i8259.h"
 #include "sys_calls.h"
+#include "scheduler.h"
 
 
 #define keyboard_port 0x60
@@ -154,7 +155,7 @@ void keyboard_handler(){
       keyboard_buffer[keyboard_buffer_index] = print_char;
       //keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
-      printf("%c", print_char);
+      putc2(print_char);
     }
   }
   /*else if(c == 0x0F){
@@ -171,7 +172,7 @@ void keyboard_handler(){
   }*/
   else if(c == BACKSPACE && keyboard_buffer_index>0){		//adds backspace by overwriting previous char with a space
       set_cursors(get_screenx()-1, get_screeny());
-      printf("%c", ' ');
+      putc2(' ');
       set_cursors(get_screenx()-1, get_screeny());
       update_cursor(get_screenx(), get_screeny());
       keyboard_buffer_index--;
@@ -183,7 +184,7 @@ void keyboard_handler(){
 		if(keyboard_buffer_index < KB_BUF_SIZE){
 			char print_char = '\n';
       keyboard_buffer[keyboard_buffer_index] =  '\n';
-			printf("%c", print_char);
+			putc2(print_char);
 			keyboard_buffer_index++;
 		}
 		//terminal_write(0,rw_buffer,n);
@@ -201,7 +202,7 @@ void keyboard_handler(){
       keyboard_buffer[keyboard_buffer_index] = print_char;
       //keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
-      printf("%c", print_char);
+      putc2(print_char);
     }
 	}
 
@@ -241,7 +242,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
 	if(nbytes < 0)
 		return -1;
 	sti();
-	while(enter_flag!=1){
+	while(!(enter_flag == 1  && curr_terminal == curr_scheduled)){
 
 	}
 	enter_flag=0;

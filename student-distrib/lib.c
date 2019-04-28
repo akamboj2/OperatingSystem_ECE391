@@ -67,15 +67,27 @@ void clear3(void) {
  * Inputs: void
  * Return Value: none
  * Function: Moves video memory up one row and clears bottom row */
-void scroll(void) {
+void scroll(int x) {
     int32_t i;
-    for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1));
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    if(x == 1){
+        for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
+          *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(video_mem + ((i+NUM_COLS) << 1));
+          *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+      }
+      for (i = (NUM_ROWS-1) * NUM_COLS; i < (NUM_ROWS) * NUM_COLS; i++) {
+          *(uint8_t *)(video_mem + (i << 1)) = ' ';
+          *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+      }
     }
-    for (i = (NUM_ROWS-1) * NUM_COLS; i < (NUM_ROWS) * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+    if(x == 2){
+        for (i = 0; i < (NUM_ROWS-1) * NUM_COLS; i++) {
+          *(uint8_t *)(VIDEO + (i << 1)) = *(uint8_t *)(VIDEO + ((i+NUM_COLS) << 1));
+          *(uint8_t *)(VIDEO + (i << 1) + 1) = ATTRIB;
+      }
+      for (i = (NUM_ROWS-1) * NUM_COLS; i < (NUM_ROWS) * NUM_COLS; i++) {
+          *(uint8_t *)(VIDEO + (i << 1)) = ' ';
+          *(uint8_t *)(VIDEO + (i << 1) + 1) = ATTRIB;
+      }
     }
 }
 
@@ -357,7 +369,7 @@ void putc(uint8_t c) {
     }
     if(screen_y[curr_scheduled-1] >= NUM_ROWS){
       //cli();
-      scroll();
+      scroll(1);
       //sti();
       screen_y[curr_scheduled-1]--;
       screen_x[curr_scheduled-1] = 0;
@@ -379,7 +391,7 @@ void putc2(uint8_t c) {
     }
     if(screen_y[curr_terminal-1] >= NUM_ROWS){
       cli();
-      scroll();
+      scroll(2);
       sti();
       screen_y[curr_terminal-1]--;
       screen_x[curr_terminal-1] = 0;

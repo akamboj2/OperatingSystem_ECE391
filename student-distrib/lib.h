@@ -31,7 +31,7 @@ void clear2(void);
 void clear3(void);
 
 //used created functions
-void scroll(void);
+void scroll(int x);
 void switch_terminal(int from, int to);
 int get_screenx();
 int get_screeny();

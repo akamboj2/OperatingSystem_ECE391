@@ -13,7 +13,7 @@
 #define MAP_MASK                0x0087    //shouldn't bit 4 be 1?
 #define DEL                     0x7F
 #define USER_VID_ADDR           0x08400000 //this is just one directory entry after prog load addr
-                                            //^note this is also pg directory size
+
 #define VIDEO                   0xB8000     //note: this may already be defined in lib.c
 #define VIDEO1                  0xB9000 //so each vid buf is just the next page (next 4kb after video mem)
 #define VIDEO2                  0xBA000

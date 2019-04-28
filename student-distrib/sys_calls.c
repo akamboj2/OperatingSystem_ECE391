@@ -422,7 +422,7 @@ int32_t vidmap (uint8_t** screen_start){
 
   //set page directory to correct physical address
   //below this should be the index USER_VID_ADDR/_4MB = 33
-  pageDirectory[USER_VID_ADDR/_4MB]= (int32_t)pgTbl_vidMem | VID_PAGE; //directory bits should be same as page's
+  pageDirectory[USER_VID_ADDR/_4MB]= (int32_t)pgTbl_vidMem | VID_PAGE; //directory bits should be same as page's--4kb page size
 
   //set page table to correct physical address
   pgTbl_vidMem[0]= VIDEO | VID_PAGE;
@@ -432,7 +432,12 @@ int32_t vidmap (uint8_t** screen_start){
   if (user_vid_mem==0){
     user_vid_mem = ((int32_t)pgTbl_vidMem & VID_MASK) | USER_VID_ADDR;
   }
+  //shouldn't it be user_vid_mem = (33<<22) | 0 | 0
+  // bc it's 33th page directory, and 0th table with 0th offset?
 
+  //note to test fish: break at vidmap, check what it's being set to
+  //break at rtc, see if pgTbl_vidMem is pointing to correct thing or set to correct thing
+  //switch terminals and then break in rtc until u on correct background curr_scheduled to see if the background process is still running with correct vidme
   *screen_start= (uint8_t*)user_vid_mem;
 
   return 0;

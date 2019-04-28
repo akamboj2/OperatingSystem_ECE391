@@ -81,98 +81,98 @@ void add_vector(int index, void *handler, int privilege, int type){
 *ALL interrupt handler functions below
 */
 void divide_err(){
-  printf("div by zero");
+  printf2("div by zero");
   cli();
   while(1){};
 }
 void debug(){
-  printf("debug");
+  printf2("debug");
   cli();
   while(1){};
 }
 
 void nmi(){
-	printf("NMI");
+	printf2("NMI");
   cli();
   while(1){};
 }
 void breakpoint(){
-	 printf("breakpoint");
+	 printf2("breakpoint");
    cli();
    while(1){};
 }
 void overflow(){
-	 printf("overflow error");
+	 printf2("overflow error");
    cli();
    while(1){};
 }
 void bound(){
-	 printf("out of bounds");
+	 printf2("out of bounds");
    cli();
    while(1){};
 }
 void invalid_opcode(){
-	printf("invalid opcode");
+	printf2("invalid opcode");
   cli();
   while(1){};
 }
 void device_NA(){
-	 printf("device not available");
+	 printf2("device not available");
    cli();
    while(1){};
 }
 void double_fault(){
-	 printf("double fault");
+	 printf2("double fault");
    cli();
    while(1){};
 }
 void coprocessor_seg_overrun(){
-	printf("coprecessor segment overrun");
+	printf2("coprecessor segment overrun");
   cli();
   while(1){};
 }
 void invalid_tss(){
-	printf("invalid tss");
+	printf2("invalid tss");
   cli();
   while(1){};
 }
 void seg_not_present(){
-	 printf("segment not present");
+	 printf2("segment not present");
    cli();
    while(1){};
 }
 void stack_seg_fault(){
-	 printf("stack segment fault");
+	 printf2("stack segment fault");
    cli();
    while(1){};
 }
 void general_protection(){
-	 printf("general protection");
+	 printf2("general protection");
    cli();
    while(1){};
 }
 void page_fault(){
-	 printf("page fault");
+	 printf2("page fault");
    cli();
    while(1){};
 }
 void floating_point_err(){
-	 printf("floating point error");
+	 printf2("floating point error");
    cli();
    while(1){};
 }
 void alignment_check(){
-	 printf("alignment check");
+	 printf2("alignment check");
    cli();
    while(1){};
 }
 void machine_check(){
-	 printf("machine check");
+	 printf2("machine check");
    cli();
    while(1){};
 }
 void floating_point_exception(){
-	 printf("floating point exception");
+	 printf2("floating point exception");
    cli();
    while(1){};
 }

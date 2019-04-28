@@ -55,9 +55,6 @@ void pit_handler(){
   }
 
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
-  //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
-
-  //NOTE: UNCOMMENT THIS DURING ACTUAL THING!
  //update paging (same page directory and table, just remap video memory accordingly)
  if (next_scheduled==curr_terminal){
   //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
@@ -80,7 +77,6 @@ void pit_handler(){
       break;
    }
  }
-//sti();
  if(total_terminal < 3){
 
    total_terminal++;
@@ -117,10 +113,8 @@ void pit_handler(){
   pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
 
   //flush tlb
-  //cli();
   asm volatile ("MOVL %CR3, %eax;");
   asm volatile ("MOVL %eax, %CR3;");
-  //sti();
 
   //store tss for current process
   pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);

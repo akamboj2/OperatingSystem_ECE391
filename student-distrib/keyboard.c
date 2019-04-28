@@ -190,17 +190,11 @@ void keyboard_handler(){
       keyboard_buffer_index--;
   }
 	else if(c == ENTER_PRESS){		//when enter is pressed, call terminal read and write to repeat onto new line
-		//keyboard_buffer[keyboard_buffer_index] = '\n';
-		//keyboard_buffer[keyboard_buffer_index + 1] = '\0';
-		//int n = terminal_read(0,rw_buffer,KB_BUF_SIZE);
-		if(keyboard_buffer_index < KB_BUF_SIZE){
+		/*if(keyboard_buffer_index < KB_BUF_SIZE){
 			char print_char = '\n';
-      keyboard_buffer[keyboard_buffer_index] =  '\n';
 			putc2(print_char);
-			keyboard_buffer_index++;
-		}
-		//terminal_write(0,rw_buffer,n);
-		enter_flag =1;
+		}*/
+		enter_flag = 1;
 	}
 	else if(c<=char_upper && c>=char_lower){		//outputs all other types of characters
     char print_char;
@@ -258,6 +252,8 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
 
 	}
 	enter_flag=0;
+	char print_char = '\n';
+	putc2(print_char);
   while (index < (nbytes<keyboard_buffer_index ? nbytes:keyboard_buffer_index)) {
       buf[index] = keyboard_buffer[index];
       index++;

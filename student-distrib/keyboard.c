@@ -240,7 +240,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
 	int index = 0;
 	if(nbytes < 0)
 		return -1;
-	//sti();
+	sti();
 	while(enter_flag!=1){
 
 	}

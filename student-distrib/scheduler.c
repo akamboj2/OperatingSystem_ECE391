@@ -9,8 +9,7 @@
 #include "x86_desc.h"
 
 
-int curr_scheduled=0; //either 1,2 or 3 (not 0)
-            //starts at zero bc we call pit handler first time with zero processes running
+int curr_scheduled=1; //either 1,2 or 3 (not 0)
 int total_terminal = 0;
 
 /*pit handler
@@ -38,7 +37,7 @@ void pit_handler(){
   */
 
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
-  printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
+  //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
 
   //NOTE: UNCOMMENT THIS DURING ACTUAL THING!
  //update paging (same page directory and table, just remap video memory accordingly)
@@ -70,7 +69,7 @@ void pit_handler(){
      switch_terminal(total_terminal-1, total_terminal);
    }
 
-   if (total_terminal!=1){
+   if (total_terminal!=1){ //don't update pcb for 0th process (there is none)
    //store tss for current process
    pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
    pcb_curr_process->esp0 = tss.esp0;
@@ -87,6 +86,7 @@ void pit_handler(){
    switch_terminal(total_terminal, 1);
    total_terminal++;
    next_scheduled=1;
+   curr_scheduled=3;
  }
 
   //update program image in virtual to point to correct physical
@@ -104,7 +104,7 @@ void pit_handler(){
 
   //update tss for next process
   pcb_t* pcb_to_be_scheduled = getPCB(highest_terminal_processes[next_scheduled-1]);
-  tss.esp0 = _8MB - ((pcb_to_be_scheduled->process_num)-1)*_8KB - _ONE_STACK_ENTRY;
+  tss.esp0 = pcb_to_be_scheduled->esp0;//8MB - ((pcb_to_be_scheduled->process_num)-1)*_8KB - _ONE_STACK_ENTRY;
 
   //NOTE: THIS LINE MUST BE BEFORE THE ASM VOLATILE CODE BELOW (otherwise unexpected behavior)
   curr_scheduled=next_scheduled;

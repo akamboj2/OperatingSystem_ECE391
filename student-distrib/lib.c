@@ -118,8 +118,8 @@ void switch_terminal(int from, int to) {
   set_cursors(screen_x, screen_y);
 
   for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-      *(uint8_t *)(f + (i << 1)) = *(uint8_t *)(video_mem + (i << 1));
-      *(uint8_t *)(video_mem + (i << 1)) = *(uint8_t *)(t + (i << 1));
+      *(uint8_t *)(f + (i << 1)) = *(uint8_t *)(VIDEO + (i << 1));
+      *(uint8_t *)(VIDEO + (i << 1)) = *(uint8_t *)(t + (i << 1));
       //f[i] = *(uint8_t *)(video_mem + (i << 1));
       //*(uint8_t *)(video_mem + (i << 1)) = t[i];
       //*(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;

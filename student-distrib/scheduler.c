@@ -3,7 +3,15 @@
 #include "lib.h"
 #include "i8259.h"
 #include "types.h"
+#include "constants.h"
 #include "sys_calls.h"
+#include "paging.h"
+#include "x86_desc.h"
+
+
+int curr_scheduled=0; //either 1,2 or 3 (not 0)
+            //starts at zero bc we call pit handler first time with zero processes running
+int total_terminal = 0;
 
 /*pit handler
  *
@@ -11,22 +19,8 @@
  * Outputs: executes at pit interrupt, does scheduling!
  * Side Effects: None
  */
-int total_terminal = 0;
-
 void pit_handler(){
   send_eoi(0);
-  if(total_terminal < 3){
-    total_terminal++;
-    if(total_terminal-1 != 0){
-      switch_terminal(total_terminal-1, total_terminal);
-    }
-    execute((const uint8_t*)("shell"));
-    return;
-  }else if(total_terminal == 3){
-    switch_terminal(total_terminal, 1);
-    total_terminal++;
-  }
-
 
   //printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
@@ -43,7 +37,84 @@ void pit_handler(){
   u Restore next process’ esp/ebp
   */
 
+  int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
+  printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
 
+  //NOTE: UNCOMMENT THIS DURING ACTUAL THING!
+ //update paging (same page directory and table, just remap video memory accordingly)
+ if (next_scheduled==curr_terminal){
+  //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
+  pgTbl_vidMem[0]=VIDEO|VID_PAGE; //this is so that the user (calling vidmap syscall) can print
+  video_mem = (char *)VIDEO;  //this is so that printf/puts/putc (which dereferences vid_mem) can print
+ }else{
+   //otherwise we need to update it to point to the correct video buffer in physical memory
+   switch(next_scheduled){
+    case 1:
+      pgTbl_vidMem[0]=VIDEO1|VID_PAGE;
+      video_mem = (char *)VIDEO1;
+      break;
+    case 2:
+      pgTbl_vidMem[0]=VIDEO2|VID_PAGE;
+      video_mem = (char *)VIDEO2;
+      break;
+    case 3:
+      pgTbl_vidMem[0]=VIDEO3|VID_PAGE;
+      video_mem = (char *)VIDEO3;
+      break;
+   }
+ }
+
+ if(total_terminal < 3){
+   total_terminal++;
+   if(total_terminal-1 != 0){
+     switch_terminal(total_terminal-1, total_terminal);
+   }
+
+   if (total_terminal!=1){
+   //store tss for current process
+   pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
+   pcb_curr_process->esp0 = tss.esp0;
+
+   //save previous ebp, restore new ebp
+   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
+
+   curr_scheduled=next_scheduled;
+  }
+
+   execute((const uint8_t*)("shell"));
+   return;
+ }else if(total_terminal == 3){
+   switch_terminal(total_terminal, 1);
+   total_terminal++;
+   next_scheduled=1;
+ }
+
+  //update program image in virtual to point to correct physical
+  pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
+
+  //flush tlb
+  cli();
+  asm volatile ("MOVL %CR3, %eax;");
+  asm volatile ("MOVL %eax, %CR3;");
+  sti();
+
+  //store tss for current process
+  pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
+  pcb_curr_process->esp0 = tss.esp0;
+
+  //update tss for next process
+  pcb_t* pcb_to_be_scheduled = getPCB(highest_terminal_processes[next_scheduled-1]);
+  tss.esp0 = _8MB - ((pcb_to_be_scheduled->process_num)-1)*_8KB - _ONE_STACK_ENTRY;
+
+  //NOTE: THIS LINE MUST BE BEFORE THE ASM VOLATILE CODE BELOW (otherwise unexpected behavior)
+  curr_scheduled=next_scheduled;
+
+  //save previous ebp, restore new ebp
+  //asm volatile("MOVL %%ebp, %0;" : "=r" (pcb_curr_process->ebp_scheduler));
+  asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
+  asm volatile("MOVL %0, %%ebp;" : :"r" (pcb_to_be_scheduled->ebp_scheduler));
+
+  //when returns it should jmp eip to next processes return from pit interrupt bc we switched stacks
 }
 
 /*pit handler

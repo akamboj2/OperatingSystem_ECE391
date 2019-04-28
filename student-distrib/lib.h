@@ -13,11 +13,10 @@
 
 
 extern int curr_terminal;
-/*extern char* video_mem;
+extern char* video_mem;
 extern char* video_buf1;
 extern char* video_buf2;
-extern char* video_buf3;*/
-
+extern char* video_buf3;
 
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);

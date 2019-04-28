@@ -7,13 +7,14 @@
 
 int curr_terminal = 1;
 
+
 static int screen_x;
 static int screen_y;
 
-static char* video_mem = (char *)VIDEO;
-static char* video_buf1 = (char *)VIDEO1;
-static char* video_buf2 = (char *)VIDEO2;
-static char* video_buf3 = (char *)VIDEO3;
+char* video_mem = (char *)VIDEO;
+char* video_buf1 = (char *)VIDEO1;
+char* video_buf2 = (char *)VIDEO2;
+char* video_buf3 = (char *)VIDEO3;
 
 //these have been moved to paging.c so they can be mapped as pages and initialized there
 // char video_buf1[NUM_ROWS * NUM_COLS] = {' '};
@@ -23,8 +24,6 @@ static char* video_buf3 = (char *)VIDEO3;
 int t1_pos[2] = {0,0};
 int t2_pos[2] = {0,0};
 int t3_pos[2] = {0,0};
-
-
 
 /* void clear(void);
  * Inputs: void

@@ -136,7 +136,7 @@ movw %ax, %gs
 
 movl %esp, %eax
 pushl $0x2B  #ds
-pushl $(0x83FFFFC) #esp points to 132MB minus one block up
+pushl $(0x83FFFFC) #esp points to 132MB minus one block (4B address) up
 pushfl  #push eflags
 popl  %edx
 orl   $0x200, %edx #enables interrupt bit in eflags for user mode since cli disables it

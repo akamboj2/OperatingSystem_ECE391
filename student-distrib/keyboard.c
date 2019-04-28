@@ -28,6 +28,8 @@
 #define SHIFT_PRESSED2 0x36
 #define SHIFT_RELEASED1 0xAA
 #define SHIFT_RELEASED2 0xB6
+#define ALT_PRESSED 0x38
+#define ALT_RELEASED 0xB8
 #define CAPS_PRESSED 0x3A
 #define CTRL_PRESSED 0x1D
 #define CTRL_RELEASED 0x9D
@@ -39,6 +41,7 @@
 #define _F3 0x3D
 
 int shift_key = FALSE;
+int alt_key = FALSE;
 int cap_flag = FALSE;
 int ctrl_key = FALSE;
 int keyboard_buffer_index = 0;
@@ -85,6 +88,12 @@ void keyboard_handler(){
   else if(c == SHIFT_RELEASED1 || c == SHIFT_RELEASED2){	//shift key released
     shift_key = FALSE;
   }
+	if(c == ALT_PRESSED){	//shift pressed
+		alt_key = TRUE;
+	}
+	else if(c == ALT_RELEASED){	//shift key released
+		alt_key = FALSE;
+	}
   else if(c == CAPS_PRESSED){ //caps locks pressed - keep track with flag
     cap_flag = !cap_flag;
   }
@@ -100,7 +109,7 @@ void keyboard_handler(){
     set_cursors(0,0);			//reset cursor
     update_cursor(0,0);
   }
-	else if(c == _F1 || c == _F2 || c == _F3){
+	else if(alt_key == TRUE && (c == _F1 || c == _F2 || c == _F3)){
 		int j;
 		unsigned char * kb_ptr;
 		if(curr_terminal == 1){
@@ -269,7 +278,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
  * Side Effects: clears prior state of video memory
  */
 int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
-	
+
 	unsigned char* buf = (unsigned char*) buf_t;
 	if(buf == NULL || nbytes < 0)
 		return -1;

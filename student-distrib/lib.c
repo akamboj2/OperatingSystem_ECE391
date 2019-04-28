@@ -150,13 +150,13 @@ int get_screeny(){
  * Function: changes cursor positon */
 void set_cursors(int pos_x, int pos_y){
   //error checking
-  // if (pos_x<0){
-  //   //without this pos_x would go neagtive with backspace and if you backspaced more than one line
-  //   //and are on the top line then you would crash
-  //   pos_y--;
-  //   pos_x=NUM_COLS-1;
-  // }
-  // if(pos_x<0 || pos_x >= NUM_COLS || pos_y<0 ||pos_y>=NUM_ROWS) return;
+  if (pos_x<0){
+    //without this pos_x would go neagtive with backspace and if you backspaced more than one line
+    //and are on the top line then you would crash when updating cursor
+    pos_y--;
+    pos_x=NUM_COLS-1;
+  }
+  if(pos_x<0 || pos_x >= NUM_COLS || pos_y<0 ||pos_y>=NUM_ROWS) return;
   screen_x = pos_x;
   screen_y = pos_y;
 }

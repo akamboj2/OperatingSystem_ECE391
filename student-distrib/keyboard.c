@@ -262,7 +262,7 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 	if(nbytes == 0)
 		return 0;
 	int x = print_withoutnull((int8_t*)buf, nbytes);
-
+		cli();
 		for(i = 0; i < KB_BUF_SIZE; i++){
 			if(curr_scheduled == curr_terminal)
 				keyboard_buffer[i] = '\0';
@@ -281,6 +281,6 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 			kb2_pos = 0;
 		else if(curr_scheduled == 3)
 			kb3_pos = 0;
-
+	sti();
 	return x;
 }

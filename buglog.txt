@@ -25,7 +25,10 @@ Fix: Added logic to prevent deleting chars that shouldn't be deleted
 by checking keyboard_buffer_index.
 
 akamboj2 03/25
-Filesystem
+Filesystem implemented and tested. Previous directory reads were implemented in the 
+same read function as the file read. This was causing errors when testing system calls.
+Fix: create separate file_read and file_dir functions and implement them according to 
+the poor documentation and scatter specifications.
 
 jacobpc3, raghava4 04/07
 Execute not working properly
@@ -40,6 +43,8 @@ akamboj 04/07
 Can read a file with read_file but page faults with read().
 Something wrong with the jump table or passing args when read calls read_file.
 This issue is in syscall.c and filesys.c
+Fix: create a typdef jump table struct and make different tables from that with
+different pointers to the correct functions. Needed to test and debug this thoroughly.
 
 vinithr2 04/07
 Read and write in sys_calls not exhibiting correct behavior.
@@ -72,6 +77,12 @@ Fix: changed temporary setup which was designed for one terminal (Checkpoint 3),
 and implemented an array that was used to keep track of the childmost process within
 a terminal. Now in execute, when initializing the PCB, we set the parent process equal
 to the previous childmost process in the current terminal
+
+akamboj2 4/26 
+PIT dysfunctional and scheduler not working. The frequency was not being set correctly for the PIT,
+and the scheduler call was not switching processes correctly (confusion between how to store initial
+processes ebp and switch correctly between the three terminals/shells).
+Fix: initialize first 3 processes with first pit interrupts and save their ebps.
 
 raghava4 04/27
 Terminals initially created on first key press. Creates issue when scheduling because

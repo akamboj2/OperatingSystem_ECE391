@@ -285,8 +285,19 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 		//printf('\n');
 	int x = print_withoutnull((int8_t*)buf, nbytes);
 	for(i = 0; i < KB_BUF_SIZE; i++){
-		keyboard_buffer[i] = '\0';
+		if(curr_scheduled == 1)
+			keyboard_buffer1[i] = '\0';
+		else if(curr_scheduled == 2)
+			keyboard_buffer2[i] = '\0';
+		else if(curr_scheduled == 3)
+			keyboard_buffer3[i] = '\0';
 	}
-	keyboard_buffer_index = 0;
+	if(curr_scheduled == 1)
+		kb1_pos = 0;
+	else if(curr_scheduled == 2)
+		kb2_pos = 0;
+	else if(curr_scheduled == 3)
+		kb3_pos = 0;
+	
 	return x;
 }

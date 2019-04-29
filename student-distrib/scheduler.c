@@ -18,12 +18,11 @@ int switch_flag = 0;
  *
  * Inputs: None
  * Outputs: executes at pit interrupt, does scheduling!
- * Side Effects: None
+ * Side Effects: this function is called whenever a PIT interrupt is raised
+ * The comments written throughout the function explain how it functions,
+ * because listing everything that it does in the header would be too confusing.
  */
 void pit_handler(){
-  //send_eoi(0);
-
-  //printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
   Utilize the kernel stack (think about what you did for HALT)
   u Again you will be using assembly to do the context switch

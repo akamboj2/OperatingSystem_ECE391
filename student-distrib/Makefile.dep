@@ -19,6 +19,7 @@ rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
 scheduler.o: scheduler.c scheduler.h idt.h lib.h types.h i8259.h \
   constants.h sys_calls.h filesys.h rtc.h keyboard.h paging.h x86_desc.h
 sys_calls.o: sys_calls.c sys_calls.h types.h filesys.h rtc.h keyboard.h \
-  constants.h lib.h assembly_linkage.h idt.h paging.h x86_desc.h
+  constants.h lib.h assembly_linkage.h idt.h paging.h x86_desc.h \
+  scheduler.h
 tests.o: tests.c tests.h x86_desc.h types.h lib.h keyboard.h rtc.h \
   filesys.h sys_calls.h constants.h assembly_linkage.h idt.h

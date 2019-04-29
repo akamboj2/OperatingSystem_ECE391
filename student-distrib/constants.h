@@ -10,7 +10,7 @@
 #define _8KB                    0x2000
 #define _4B                     0x20
 #define PROG_LOAD_ADDR          0x08048000
-#define MAP_MASK                0x0087    //shouldn't bit 4 be 1?
+#define MAP_MASK                0x0087    
 #define DEL                     0x7F
 #define USER_VID_ADDR           0x08400000 //this is just one directory entry after prog load addr
                                             //^note this is also pg directory size

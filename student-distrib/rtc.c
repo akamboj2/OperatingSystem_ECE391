@@ -32,7 +32,7 @@ void rtc_handler(){
 }
 
 /* rtc_open() : is called in kernel.c, initializes the rtc driver
- * INPUTS: None
+ * INPUTS: fd - unused
  * OUPUTS: 0
  * SIDE EFFECTS: sets nio_flag to 0, communicates with rtc ports
  */
@@ -49,7 +49,7 @@ int rtc_open(const uint8_t* fd){
 }
 
 /* rtc_close() : does nothing at the moment
- * INPUTS: None
+ * INPUTS: fd - unused
  * OUTPUTS: 0
  * SIDE EFFECTS: None
  */
@@ -59,7 +59,7 @@ int rtc_close(int32_t fd){
 
 /* rtc_read() : blocks until next interrupt occurs. when this
  *              happens we return 0.
- * INPUTS: None
+ * INPUTS: fd, buf, nbytes - all are unused
  * OUPUTS: return 0
  * SIDE EFFECTS: this function does not return until another
  *               interrupt is detected. after this occurs, it
@@ -85,6 +85,7 @@ int rtc_write(int32_t fd, const void* buf, int32_t nbytes){
     }
     int32_t freq =*(int32_t*)(buf);
     uint32_t rate;
+    //ensures that the RTC frequency can only be switched to a power of two
     if(freq == F_1024)
       rate = R_1;
     else if(freq == F_512)
@@ -107,7 +108,6 @@ int rtc_write(int32_t fd, const void* buf, int32_t nbytes){
       rate = R_10;
     else return -1;
 
-    //rate &= 0x0F;
     if (rate >= 15 || rate <= 2)  //ensures the rate is within the bounds
         return -1;
     cli();

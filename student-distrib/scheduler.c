@@ -57,7 +57,7 @@ void pit_handler(){
 
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
   //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
-  *(uint8_t*)(VIDEO+NUM_COLS)='0'+next_scheduled;
+  //*(uint8_t*)(VIDEO+NUM_COLS)='0'+next_scheduled;
   //NOTE: UNCOMMENT THIS DURING ACTUAL THING!
 
  //update paging (same page directory and table, just remap video memory accordingly)

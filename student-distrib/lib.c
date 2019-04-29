@@ -157,8 +157,13 @@ int get_screeny(){
  * Return Value: none
  * Function: changes cursor positon */
 void set_cursors(int pos_x, int pos_y){
-  screen_x[curr_terminal-1] = pos_x;
-  screen_y[curr_terminal-1] = pos_y;
+  if(pos_x == -1){
+    screen_x[curr_terminal-1] = NUM_COLS-1;
+    screen_y[curr_terminal-1] = pos_y-1;
+  }else{
+    screen_x[curr_terminal-1] = pos_x;
+    screen_y[curr_terminal-1] = pos_y;
+  }
 }
 
 

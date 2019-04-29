@@ -274,7 +274,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
  * Side Effects: clears prior state of video memory
  */
 int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
-
+	int i;
 	unsigned char* buf = (unsigned char*) buf_t;
 	if(buf == NULL || nbytes < 0)
 		return -1;
@@ -284,5 +284,9 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 		//return -1;
 		//printf('\n');
 	int x = print_withoutnull((int8_t*)buf, nbytes);
+	for(i = 0; i < KB_BUF_SIZE; i++){
+		keyboard_buffer[i] = '\0';
+	}
+	keyboard_buffer_index = 0;
 	return x;
 }

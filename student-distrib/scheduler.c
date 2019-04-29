@@ -18,11 +18,12 @@ int switch_flag = 0;
  *
  * Inputs: None
  * Outputs: executes at pit interrupt, does scheduling!
- * Side Effects: this function is called whenever a PIT interrupt is raised
- * The comments written throughout the function explain how it functions,
- * because listing everything that it does in the header would be too confusing.
+ * Side Effects: None
  */
 void pit_handler(){
+  //send_eoi(0);
+
+  //printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
   Utilize the kernel stack (think about what you did for HALT)
   u Again you will be using assembly to do the context switch
@@ -55,6 +56,10 @@ void pit_handler(){
   }
 
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
+  //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
+  //  *(uint8_t*)(VIDEO+NUM_COLS)='0'+next_scheduled;
+  //NOTE: UNCOMMENT THIS DURING ACTUAL THING!
+
  //update paging (same page directory and table, just remap video memory accordingly)
  if (next_scheduled==curr_terminal){
   //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
@@ -146,7 +151,8 @@ void pit_handler(){
  */
 void pit_init(){
   //see https://wiki.osdev.org/PIT for specifications
-  //see https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer for example code of setting 100 Hz freq
+  //see https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer
+  //^for example code of setting 100 Hz freq
   enable_irq(0);      //enable pit or interval timer
   int8_t pit_status= PIT_STATUS, //channel bits (6-7), access mode lobyte/hibyte (bits4-5), mode 3 square wave generator (bits 1-3), bit 0 binary mode
      out_highB,out_lowB;
@@ -157,11 +163,41 @@ void pit_init(){
   out_val = numerator/freq;
   out_highB= (out_val & PIT_HIGH)>>PIT_SHIFT;
   out_lowB= out_val&PIT_LOW;
-  outb(PIT_REG_MODE,pit_status);
+  //outb(PIT_REG_MODE,pit_status);
+  outb(pit_status,PIT_REG_MODE);
   /* "For the "lobyte/hibyte" mode, 16 bits are always transferred as a pair, with the
   * lowest 8 bits followed by the highest 8 bits (both 8 bit transfers are to the same IO port,
   * sequentially -- a word transfer will not work)."
   */
-  outb(PIT_CHAN0,out_lowB);
-  outb(PIT_CHAN0,out_highB);
+  // outb(PIT_CHAN0,out_lowB);
+  // outb(PIT_CHAN0,out_highB);
+  outb(out_lowB,PIT_CHAN0);
+  outb(out_highB,PIT_CHAN0);
 }
+
+/*bits to output to PIT_REG_MODE port! From documentation
+https://wiki.osdev.org/PIT for specifications
+
+Bits         Usage
+6 and 7      Select channel :
+               0 0 = Channel 0
+               0 1 = Channel 1
+               1 0 = Channel 2
+               1 1 = Read-back command (8254 only)
+4 and 5      Access mode :
+               0 0 = Latch count value command
+               0 1 = Access mode: lobyte only
+               1 0 = Access mode: hibyte only
+               1 1 = Access mode: lobyte/hibyte
+1 to 3       Operating mode :
+               0 0 0 = Mode 0 (interrupt on terminal count)
+               0 0 1 = Mode 1 (hardware re-triggerable one-shot)
+               0 1 0 = Mode 2 (rate generator)
+               0 1 1 = Mode 3 (square wave generator)
+               1 0 0 = Mode 4 (software triggered strobe)
+               1 0 1 = Mode 5 (hardware triggered strobe)
+               1 1 0 = Mode 2 (rate generator, same as 010b)
+               1 1 1 = Mode 3 (square wave generator, same as 011b)
+0            BCD/Binary mode: 0 = 16-bit binary, 1 = four-digit BCD
+
+*/

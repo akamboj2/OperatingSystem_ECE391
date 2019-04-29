@@ -19,9 +19,11 @@ extern char* video_buf2;
 extern char* video_buf3;
 
 int32_t printf(int8_t *format, ...);
+int32_t printf2(int8_t *format, ...);
 void putc(uint8_t c);
 void putc2(uint8_t c);
 int32_t puts(int8_t *s);
+int32_t puts2(int8_t *s);
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
 uint32_t strlen(const int8_t* s);
@@ -31,7 +33,7 @@ void clear2(void);
 void clear3(void);
 
 //used created functions
-void scroll(void);
+void scroll(int x);
 void switch_terminal(int from, int to);
 int get_screenx();
 int get_screeny();

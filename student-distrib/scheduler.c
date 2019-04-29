@@ -9,8 +9,10 @@
 #include "x86_desc.h"
 
 
-int curr_scheduled=1; //either 1,2 or 3 (not 0)
+int curr_scheduled = 1; //either 1,2 or 3 (not 0)
 int total_terminal = 0;
+int init_flag = 0;
+int switch_flag = 0;
 
 /*pit handler
  *
@@ -19,7 +21,7 @@ int total_terminal = 0;
  * Side Effects: None
  */
 void pit_handler(){
-  send_eoi(0);
+  //send_eoi(0);
 
   //printf("PIT INTERRUPT!\n");
   /* form lecture slides on scheduling:
@@ -35,16 +37,35 @@ void pit_handler(){
   u Update running video coordinates
   u Restore next process’ esp/ebp
   */
+  send_eoi(0);
+  //switch between terminals if flag enabled
+  switch (switch_flag)
+  {
+    case 1:
+      switch_terminal(curr_terminal, T1);
+      switch_flag = 0;
+      break;
+    case 2:
+      switch_terminal(curr_terminal, T2);
+      switch_flag = 0;
+      break;
+    case 3:
+      switch_terminal(curr_terminal, T3);
+      switch_flag = 0;
+      break;
+  }
+
   int next_scheduled = curr_scheduled%3+1; //mod 3 first bc we are rotating between 1,2,3 (excluding 0)
   //printf("Switching from %d to %d\n",curr_scheduled,next_scheduled);
   *(uint8_t*)(VIDEO+NUM_COLS)='0'+next_scheduled;
   //NOTE: UNCOMMENT THIS DURING ACTUAL THING!
+
  //update paging (same page directory and table, just remap video memory accordingly)
  if (next_scheduled==curr_terminal){
   //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
   pgTbl_vidMem[0]=VIDEO|VID_PAGE; //this is so that the user (calling vidmap syscall) can print
-  //video_mem = (char *)VIDEO;  //this is so that printf/puts/putc (which dereferences vid_mem) can print
-}else{
+  video_mem = (char *)VIDEO; //this is so that printf/puts/putc (which dereferences vid_mem) can print
+ }else{
    //otherwise we need to update it to point to the correct video buffer in physical memory
    switch(next_scheduled){
     case 1:
@@ -61,40 +82,45 @@ void pit_handler(){
       break;
    }
  }
- if(total_terminal < 3){
+
+ //logic to create 3 initial terminals
+ if(total_terminal < T3){
    total_terminal++;
    if(total_terminal-1 != 0){
      switch_terminal(total_terminal-1, total_terminal);
    }
+   update_cursor(0,0);
+   set_cursors(0,0);
 
    if (total_terminal!=1){ //don't update pcb for 0th process (there is none)
    //store tss for current process
-   pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
-   pcb_curr_process->esp0 = tss.esp0;
+     pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
+     pcb_curr_process->esp0 = tss.esp0;
 
-   //save previous ebp, restore new ebp
-   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
+     //save previous ebp, restore new ebp
+     asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
 
-   curr_scheduled=next_scheduled;
+     curr_scheduled=next_scheduled;
   }
-
    execute((const uint8_t*)("shell"));
    return;
- }else if(total_terminal == 3){
-   switch_terminal(total_terminal, 1);
-   total_terminal++;
-   next_scheduled=1;
-   curr_scheduled=3;
  }
+ else if(total_terminal == T3){ //if all 3 shells created, switch back to first terminal
+   switch_terminal(total_terminal, T1);
+   total_terminal++;
+   next_scheduled=T1;
+   curr_scheduled=T3;
+   init_flag = 1;
+   return;
+ }
+
 
   //update program image in virtual to point to correct physical
   pageDirectory[_4B] = (_8MB + ((highest_terminal_processes[next_scheduled-1]-1)*_4MB)) | MAP_MASK;
 
   //flush tlb
-  //cli();
   asm volatile ("MOVL %CR3, %eax;");
   asm volatile ("MOVL %eax, %CR3;");
-  //sti();
 
   //store tss for current process
   pcb_t* pcb_curr_process = getPCB(highest_terminal_processes[curr_scheduled-1]);
@@ -107,10 +133,12 @@ void pit_handler(){
   //NOTE: THIS LINE MUST BE BEFORE THE ASM VOLATILE CODE BELOW (otherwise unexpected behavior)
   curr_scheduled=next_scheduled;
 
+
   //save previous ebp, restore new ebp
   //asm volatile("MOVL %%ebp, %0;" : "=r" (pcb_curr_process->ebp_scheduler));
   asm volatile("MOVL %%ebp, %%eax;" : "=a" (pcb_curr_process->ebp_scheduler));
   asm volatile("MOVL %0, %%ebp;" : :"r" (pcb_to_be_scheduled->ebp_scheduler));
+
 
   //when returns it should jmp eip to next processes return from pit interrupt bc we switched stacks
 }
@@ -123,17 +151,18 @@ void pit_handler(){
  */
 void pit_init(){
   //see https://wiki.osdev.org/PIT for specifications
-  //see https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer for example code of setting 100 Hz freq
+  //see https://en.wikibooks.org/wiki/X86_Assembly/Programmable_Interval_Timer
+  //^for example code of setting 100 Hz freq
   enable_irq(0);      //enable pit or interval timer
-  int8_t pit_status= 0x36, //channel bits (6-7), access mode lobyte/hibyte (bits4-5), mode 3 square wave generator (bits 1-3), bit 0 binary mode
+  int8_t pit_status= PIT_STATUS, //channel bits (6-7), access mode lobyte/hibyte (bits4-5), mode 3 square wave generator (bits 1-3), bit 0 binary mode
      out_highB,out_lowB;
     //to make the PIT fire at a certain frequency f, you need to figure out an integer x, such that 1193182 / x = f.
     //If a frequency of 100 hz is desired, we see that the necessary divisor is 1193182 / 100 = 11931
-  int32_t  freq = 100, numerator=1193182;
+  int32_t freq = PIT_FREQ, numerator=PIT_NUM;
   int16_t out_val;
   out_val = numerator/freq;
-  out_highB= (out_val & 0xFF00)>>8;
-  out_lowB= out_val&0xFF;
+  out_highB= (out_val & PIT_HIGH)>>PIT_SHIFT;
+  out_lowB= out_val&PIT_LOW;
   outb(PIT_REG_MODE,pit_status);
   /* "For the "lobyte/hibyte" mode, 16 bits are always transferred as a pair, with the
   * lowest 8 bits followed by the highest 8 bits (both 8 bit transfers are to the same IO port,
@@ -142,3 +171,30 @@ void pit_init(){
   outb(PIT_CHAN0,out_lowB);
   outb(PIT_CHAN0,out_highB);
 }
+
+/*bits to output to PIT_REG_MODE port! From documentation
+https://wiki.osdev.org/PIT for specifications
+
+Bits         Usage
+6 and 7      Select channel :
+               0 0 = Channel 0
+               0 1 = Channel 1
+               1 0 = Channel 2
+               1 1 = Read-back command (8254 only)
+4 and 5      Access mode :
+               0 0 = Latch count value command
+               0 1 = Access mode: lobyte only
+               1 0 = Access mode: hibyte only
+               1 1 = Access mode: lobyte/hibyte
+1 to 3       Operating mode :
+               0 0 0 = Mode 0 (interrupt on terminal count)
+               0 0 1 = Mode 1 (hardware re-triggerable one-shot)
+               0 1 0 = Mode 2 (rate generator)
+               0 1 1 = Mode 3 (square wave generator)
+               1 0 0 = Mode 4 (software triggered strobe)
+               1 0 1 = Mode 5 (hardware triggered strobe)
+               1 1 0 = Mode 2 (rate generator, same as 010b)
+               1 1 1 = Mode 3 (square wave generator, same as 011b)
+0            BCD/Binary mode: 0 = 16-bit binary, 1 = four-digit BCD
+
+*/

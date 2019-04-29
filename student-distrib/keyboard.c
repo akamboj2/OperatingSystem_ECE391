@@ -28,6 +28,8 @@
 #define SHIFT_PRESSED2 0x36
 #define SHIFT_RELEASED1 0xAA
 #define SHIFT_RELEASED2 0xB6
+#define ALT_PRESSED 0x38
+#define ALT_RELEASED 0xB8
 #define CAPS_PRESSED 0x3A
 #define CTRL_PRESSED 0x1D
 #define CTRL_RELEASED 0x9D
@@ -39,6 +41,7 @@
 #define _F3 0x3D
 
 int shift_key = FALSE;
+int alt_key = FALSE;
 int cap_flag = FALSE;
 int ctrl_key = FALSE;
 int keyboard_buffer_index = 0;
@@ -76,8 +79,8 @@ void keyboard_handler(){
             'X','C','V','B','N','M','<','>','?'};
 
 	unsigned char c = inb(keyboard_port);
+	//send_eoi(1);
 	send_eoi(1);
-
 
   if(c == SHIFT_PRESSED1 || c == SHIFT_PRESSED2){	//shift pressed
     shift_key = TRUE;
@@ -85,6 +88,12 @@ void keyboard_handler(){
   else if(c == SHIFT_RELEASED1 || c == SHIFT_RELEASED2){	//shift key released
     shift_key = FALSE;
   }
+	if(c == ALT_PRESSED){	//shift pressed
+		alt_key = TRUE;
+	}
+	else if(c == ALT_RELEASED){	//shift key released
+		alt_key = FALSE;
+	}
   else if(c == CAPS_PRESSED){ //caps locks pressed - keep track with flag
     cap_flag = !cap_flag;
   }
@@ -100,7 +109,7 @@ void keyboard_handler(){
     set_cursors(0,0);			//reset cursor
     update_cursor(0,0);
   }
-	else if(c == _F1 || c == _F2 || c == _F3){
+	else if(alt_key == TRUE && (c == _F1 || c == _F2 || c == _F3)){
 		int j;
 		unsigned char * kb_ptr;
 		if(curr_terminal == 1){
@@ -122,7 +131,8 @@ void keyboard_handler(){
 			else if(curr_terminal == 3)
 				kb3_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb1_pos;
-			switch_terminal(curr_terminal, 1); //(from,to)
+			//switch_terminal(curr_terminal, 1); //(from,to)
+			switch_flag = 1;
 		}
 		else if(c == _F2 && curr_terminal != 2){
 			for(j = 0; j < KB_BUF_SIZE; j++){
@@ -134,7 +144,8 @@ void keyboard_handler(){
 			else if(curr_terminal == 3)
 				kb3_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb2_pos;
-			switch_terminal(curr_terminal, 2); //(from,to)
+			//switch_terminal(curr_terminal, 2); //(from,to)
+			switch_flag = 2;
 		}
 		else if(c == _F3 && curr_terminal != 3){
 			for(j = 0; j < KB_BUF_SIZE; j++){
@@ -146,7 +157,8 @@ void keyboard_handler(){
 			else if(curr_terminal == 2)
 				kb2_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb3_pos;
-			switch_terminal(curr_terminal, 3); //(from,to)
+			//switch_terminal(curr_terminal, 3); //(from,to)
+			switch_flag = 3;
 		}
 	}
   else if(c == SPACE){	//outputs space
@@ -179,17 +191,11 @@ void keyboard_handler(){
       keyboard_buffer_index--;
   }
 	else if(c == ENTER_PRESS){		//when enter is pressed, call terminal read and write to repeat onto new line
-		//keyboard_buffer[keyboard_buffer_index] = '\n';
-		//keyboard_buffer[keyboard_buffer_index + 1] = '\0';
-		//int n = terminal_read(0,rw_buffer,KB_BUF_SIZE);
-		if(keyboard_buffer_index < KB_BUF_SIZE){
+		/*if(keyboard_buffer_index < KB_BUF_SIZE){
 			char print_char = '\n';
-      keyboard_buffer[keyboard_buffer_index] =  '\n';
 			putc2(print_char);
-			keyboard_buffer_index++;
-		}
-		//terminal_write(0,rw_buffer,n);
-		enter_flag =1;
+		}*/
+		enter_flag = 1;
 	}
 	else if(c<=char_upper && c>=char_lower){		//outputs all other types of characters
     char print_char;
@@ -206,7 +212,7 @@ void keyboard_handler(){
       putc2(print_char);
     }
 	}
-
+//send_eoi(1);
 }
 
 /*terminal_open
@@ -247,6 +253,8 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
 
 	}
 	enter_flag=0;
+	char print_char = '\n';
+	putc2(print_char);
   while (index < (nbytes<keyboard_buffer_index ? nbytes:keyboard_buffer_index)) {
       buf[index] = keyboard_buffer[index];
       index++;
@@ -267,6 +275,7 @@ int32_t terminal_read(int32_t fd, void* buf_t, int32_t nbytes){
  * Side Effects: clears prior state of video memory
  */
 int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
+	int i;
 	unsigned char* buf = (unsigned char*) buf_t;
 	if(buf == NULL || nbytes < 0)
 		return -1;
@@ -275,5 +284,10 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 	//if(nbytes < 0 || nbytes >= sizeof(buf)) //less than or equal to account for length the null char adds
 		//return -1;
 		//printf('\n');
-	return print_withoutnull((int8_t*)buf, nbytes);
+	int x = print_withoutnull((int8_t*)buf, nbytes);
+	// for(i = 0; i < KB_BUF_SIZE; i++){
+	// 	keyboard_buffer[i] = '\0';
+	// }
+	// keyboard_buffer_index = 0;
+	return x;
 }

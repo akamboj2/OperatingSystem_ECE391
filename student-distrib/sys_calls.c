@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "paging.h"
 #include "x86_desc.h"
+#include "scheduler.h"
 
 //basic file tables
 static ftable file_table = {&file_read, &file_write, &file_open, &file_close};
@@ -21,15 +22,15 @@ static ftable stdout_table = {&stdout_read,&terminal_write,&terminal_open,&termi
  //curr_process = 0;
 int32_t user_vid_mem=0;
 int32_t process_count = 0;
-int32_t highest_terminal_processes[3] = {0,0,0};
-int32_t pcb_slots[6] = {0,0,0,0,0,0};
-int32_t process_per_terminal[3] = {0,0,0};
+int32_t highest_terminal_processes[NUM_T] = {0,0,0};
+int32_t pcb_slots[MAX_PROCESS_COUNT] = {0,0,0,0,0,0};
+int32_t process_per_terminal[NUM_T] = {0,0,0};
 
 
 /*getPCB
- * Description: Gets curr process' pcb
+ * Description: Gets curr terminal's child most process pcb
  * Inputs: number of curr process
- * Outputs/Return Values: return pointer to curr process' pcb
+ * Outputs/Return Values: return pointer to pcb
  * Side Effects: none
  */
 pcb_t * getPCB(int32_t curr){
@@ -49,9 +50,9 @@ int32_t halt (uint8_t status){
   cli();
 
   process_count--;
-  process_per_terminal[curr_terminal-1]--;
-  pcb_t* pcb_to_be_halted = getPCB(highest_terminal_processes[curr_terminal-1]);
-  //if (pcb_to_be_halted->process_num==4){putc("H");}
+  process_per_terminal[curr_scheduled-1]--;
+  pcb_t* pcb_to_be_halted = getPCB(highest_terminal_processes[curr_scheduled-1]);
+
   //correct file array. this will close any files opened by the process
   for(i=0; i<MAX_OPEN_FILES; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
@@ -63,7 +64,7 @@ int32_t halt (uint8_t status){
     pcb_to_be_halted->args[j] = '\0';
   }
 
-  pcb_slots[highest_terminal_processes[curr_terminal-1]-1] = 0;
+  pcb_slots[highest_terminal_processes[curr_scheduled-1]-1] = 0;
 
   //restore parent paging
   if(pcb_to_be_halted->parent_task != NULL){
@@ -71,7 +72,7 @@ int32_t halt (uint8_t status){
     highest_terminal_processes[curr_terminal-1] = pcb_to_be_halted->parent_task->process_num;
     tss.esp0 = pcb_to_be_halted->parent_task->esp0;
   }
-  else{
+  else{ //to restart a shell if it is parent most process in a terminal
     highest_terminal_processes[curr_terminal-1] = 0;
     clear();
     set_cursors(0,0);			//reset cursor
@@ -119,25 +120,23 @@ int32_t execute (const uint8_t* command){
   //command = "fish";
   //printf("%c", *command);
 
-  if(!command){
+  if(!command){ //check to make sure that input is valid
     return -1;
   }
-  if(process_count >= 6 /*|| process_per_terminal[curr_terminal-1] >= 4*/){
-    return -1;
+  if(process_count >= MAX_PROCESS_COUNT){ //check to prevent opening more than 6 processes
+    printf("MAX PROCESSES REACHED\n");
+    return 0;
   }
 
   uint8_t filename[_4B] = {'\0'};
   uint8_t data[_4B] = {'\0'};
 
   //parse first argument
-
   while(command[i] != '\0' && command[i] != ' ' && i<_4B){
     //printf(".%c.", command[i]);
     filename[i] = command[i];
     i++;
   }
-
-
 
   //ensure that the file actually exists
   dentry_t temp;
@@ -158,7 +157,7 @@ int32_t execute (const uint8_t* command){
   process_per_terminal[curr_terminal-1]++;
 
   int pcb_index = 0;
-  while(pcb_index < 6){
+  while(pcb_index < MAX_PROCESS_COUNT){
     if(pcb_slots[pcb_index] == 0)
       break;
     pcb_index++;
@@ -205,12 +204,13 @@ int32_t execute (const uint8_t* command){
   if(read_data(temp.inode_num, 0, (uint8_t *)PROG_LOAD_ADDR, nbytes) == -1)
     return -1;
 
-
+    //set parent pcb if exits, otherwise set parent to null
   if(highest_terminal_processes[curr_terminal-1] != 0){
     pcb->parent_task =  (pcb_t *)(_8MB - (highest_terminal_processes[curr_terminal-1])*_8KB);
   }
   else pcb->parent_task = NULL;
 
+  //update the process number of the child most process in a terminal
   highest_terminal_processes[curr_terminal-1] = pcb_index + 1;
 
   //Set up the PCB
@@ -231,10 +231,6 @@ int32_t execute (const uint8_t* command){
   for(k = STDI_O; k < MAX_OPEN_FILES; k++){
     pcb->file_array[k].flags = 0;
   }
-
-
-
-
 
   //Context Switch
   tss.ss0 = KERNEL_DS;
@@ -286,16 +282,18 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t write (int32_t fd, const void* buf, int32_t nbytes){
+  cli();
   pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
-  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0)
-    return -1;
+  if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 0 || cur_pcb->file_array[fd].flags == 0){
+    sti();
+    return -1;}
 
   if(cur_pcb->file_array[fd].flags & FD_FLAG_FILE)
-    return -1;
+    {sti();return -1;}
 
   //writes data from buffer to termianl
   int32_t position = cur_pcb->file_array[fd].fops_table->write(fd, buf, nbytes);
-
+  sti();
   return position;
 }
 
@@ -411,7 +409,7 @@ int32_t getargs (uint8_t* buf, int32_t nbytes){
  * Side Effects: none
  */
 int32_t vidmap (uint8_t** screen_start){
-
+  cli();
   //first check if valid pointer (not null and within current process memory)
   uint32_t prog_start=_128MB, prog_end= USER_VID_ADDR;
   if (screen_start==NULL || (int32_t)screen_start<prog_start || (int32_t)screen_start>=prog_end){
@@ -426,7 +424,28 @@ int32_t vidmap (uint8_t** screen_start){
   pageDirectory[USER_VID_ADDR/_4MB]= (int32_t)pgTbl_vidMem | VID_PAGE; //directory bits should be same as page's--4kb page size
 
   //set page table to correct physical address
-  pgTbl_vidMem[0]= VIDEO | VID_PAGE;
+  //pgTbl_vidMem[0]= VIDEO | VID_PAGE;
+  if (curr_scheduled==curr_terminal){
+   //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
+   pgTbl_vidMem[0]=VIDEO|VID_PAGE; //this is so that the user (calling vidmap syscall) can print
+   video_mem = (char *)VIDEO; //this is so that printf/puts/putc (which dereferences vid_mem) can print
+  }else{
+    //otherwise we need to update it to point to the correct video buffer in physical memory
+    switch(curr_scheduled){
+     case 1:
+       pgTbl_vidMem[0]=VIDEO1|VID_PAGE;
+       video_mem = (char *)VIDEO1;
+       break;
+     case 2:
+       pgTbl_vidMem[0]=VIDEO2|VID_PAGE;
+       video_mem = (char *)VIDEO2;
+       break;
+     case 3:
+       pgTbl_vidMem[0]=VIDEO3|VID_PAGE;
+       video_mem = (char *)VIDEO3;
+       break;
+    }
+  }
 
   //set the global variable user_vid_mem (virtual address mapped to same phsyical video memory)
   //you only need to set it once (same for all processes)
@@ -442,7 +461,7 @@ int32_t vidmap (uint8_t** screen_start){
   //break at rtc, see if pgTbl_vidMem is pointing to correct thing or set to correct thing
   //switch terminals and then break in rtc until u on correct background curr_scheduled to see if the background process is still running with correct vidme
   *screen_start= (uint8_t*)user_vid_mem;
-
+  sti();
   return 0;
 }
 

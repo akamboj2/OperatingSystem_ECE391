@@ -1,0 +1,109 @@
+raghava4 03/10
+IDT implemented, but unable to make calls
+Fix: forgot to init IDT in kernel.c
+
+akamboj2 03/10
+Page faults when creating and loading page tables
+Fix: Needed to change paging values and modify logic
+
+raghava4 03/11
+Keyboard skipping certain inputs when holding down key
+Fix: Critical section between input read and printing char
+
+jacobpc3 03/11
+RTC causing system to be unresponsive
+Fix: correct rtc_read function so that it will properly continue when next
+interrupt is received
+
+vinithr2 03/11
+Page faults when setting up paging
+Fix: Corrected the mask values for setting up the various page tables
+
+raghava4 03/24
+Terminal edges cases. Sometimes extra char is deleted.
+Fix: Added logic to prevent deleting chars that shouldn't be deleted
+by checking keyboard_buffer_index.
+
+akamboj2 03/25
+Filesystem
+
+jacobpc3, raghava4 04/07
+Execute not working properly
+Fix: Turned out to not even be a problem with execute, when we realized that
+execute's context switch, PCB and paging initialization was all working properly.
+When file_read is called in execute on the user program, it wouldn't read the entire
+file, since it would return once it hit a null character. Fixed by reading until
+the EOF character. After the entire file was being read execute started working
+for the most part.
+
+akamboj 04/07
+Can read a file with read_file but page faults with read().
+Something wrong with the jump table or passing args when read calls read_file.
+This issue is in syscall.c and filesys.c
+
+vinithr2 04/07
+Read and write in sys_calls not exhibiting correct behavior.
+Used GDB to step through and find the issues and correct them.
+
+jacobpc3 04/08
+Halt returning to the wrong point causing page faults
+Fix: double checked which PCB's stored ebp and esp values that were being
+restored in context switch. Also ensured that at the end of halt we were
+correctly jumping to the end of the associated execute process
+
+akamboj 04/14
+ls works the first time you call ls but not the others.
+After the first call, ls just exits and doesn't print anything.
+Fix: Fixed by changing the variable counting calls to dir_read from in function
+static to global, and then resetting it to 0 every time dir_close is called.
+
+raghava4 04/15
+grep does not properly print out file. Only prints out partial character.
+Fix: Modified file_read such that does not rely on end of file char.
+
+raghava4, jacobpc3 04/15
+7/8 sys_err tests failed
+Fix: Incorrect values returned from file_sys and rtc functions. Went through functions
+and corrected what should be returned.
+
+jacobpc3 04/25
+child processes weren't able to identify which parent process they're coming from
+Fix: changed temporary setup which was designed for one terminal (Checkpoint 3),
+and implemented an array that was used to keep track of the childmost process within
+a terminal. Now in execute, when initializing the PCB, we set the parent process equal
+to the previous childmost process in the current terminal
+
+raghava4 04/27
+Terminals initially created on first key press. Creates issue when scheduling because
+the process might not exists yet.
+Fix: Modified by creating all three processes upon the first 3 PIT interrupts.
+
+raghava4 04/28
+When enter held down, newlines printed between shell prompts. Also enter press
+sometimes treated as an invalid command
+Keyboard interrupts faster than terminal_read polled.
+Fix: Modified so that keyboard
+handler only sets a flag upon enter press and then terminal_read takes care of
+printing newline char
+
+raghava4 04/28
+When typing or printing to current terminal, sometimes prints to a different terminal.
+Fix: Add second putc function that takes into account if want to print only
+for curr terminal or for a background process.
+
+raghava4 04/28
+When typing or printing to current terminal, sometimes prints to a different terminal.
+Fix: Add second putc function that takes into account if want to print only
+for curr terminal or for a background process.
+
+raghava4, jacobpc3 04/28
+When enter is pressed, it registers for the process that is currently running, not for
+the current terminal.
+Fix: Modified terminal_read so that when enter is pressed, wait until current process
+is back for the current terminal before copying data into user-defined buffer in
+terminal_read
+
+jacobpc3, raghava4 04/28
+Page fault when running multiple counters on different terminals.
+Fix: Mistake in halt which halted curr_terminal process. Needed to halt
+curr_scheduled process.

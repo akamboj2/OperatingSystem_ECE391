@@ -43,8 +43,8 @@ void pit_handler(){
  if (next_scheduled==curr_terminal){
   //if the next one is the same as the one we are displaying, make virtual video mem point to actual video memory
   pgTbl_vidMem[0]=VIDEO|VID_PAGE; //this is so that the user (calling vidmap syscall) can print
-  video_mem = (char *)VIDEO;  //this is so that printf/puts/putc (which dereferences vid_mem) can print
- }else{
+  //video_mem = (char *)VIDEO;  //this is so that printf/puts/putc (which dereferences vid_mem) can print
+}else{
    //otherwise we need to update it to point to the correct video buffer in physical memory
    switch(next_scheduled){
     case 1:

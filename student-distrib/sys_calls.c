@@ -47,10 +47,11 @@ int32_t halt (uint8_t status){
   //close files in fd
   int i, j;
   cli();
+
   process_count--;
   process_per_terminal[curr_terminal-1]--;
   pcb_t* pcb_to_be_halted = getPCB(highest_terminal_processes[curr_terminal-1]);
-
+  //if (pcb_to_be_halted->process_num==4){putc("H");}
   //correct file array. this will close any files opened by the process
   for(i=0; i<MAX_OPEN_FILES; i++){
       if(pcb_to_be_halted->file_array[i].flags != 0)
@@ -430,9 +431,11 @@ int32_t vidmap (uint8_t** screen_start){
   //set the global variable user_vid_mem (virtual address mapped to same phsyical video memory)
   //you only need to set it once (same for all processes)
   if (user_vid_mem==0){
-    user_vid_mem = ((int32_t)pgTbl_vidMem & VID_MASK) | USER_VID_ADDR;
+    //user_vid_mem = ((int32_t)pgTbl_vidMem & VID_MASK) | USER_VID_ADDR;
+    user_vid_mem=USER_VID_ADDR; //see explanation below for why this is more concise but same as above
   }
-  //shouldn't it be user_vid_mem = (33<<22) | 0 | 0
+  //shouldn't it be user_vid_mem = (33<<22) | 0 | 0, but that's the same bc pgTbl_vidMem is some space in kernel data area
+  // (x407000where pgTblMem is declared) &FFC00000 is just zero | USER_VID_ADDR and we get what we want 0x08400000 which is 128 MB which is correct BOOOM
   // bc it's 33th page directory, and 0th table with 0th offset?
 
   //note to test fish: break at vidmap, check what it's being set to

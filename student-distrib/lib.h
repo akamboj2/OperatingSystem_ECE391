@@ -9,7 +9,7 @@
 
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0x7
+#define ATTRIB      0x0A
 
 
 extern int curr_terminal;

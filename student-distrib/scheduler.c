@@ -163,13 +163,16 @@ void pit_init(){
   out_val = numerator/freq;
   out_highB= (out_val & PIT_HIGH)>>PIT_SHIFT;
   out_lowB= out_val&PIT_LOW;
-  outb(PIT_REG_MODE,pit_status);
+  //outb(PIT_REG_MODE,pit_status);
+  outb(pit_status,PIT_REG_MODE);
   /* "For the "lobyte/hibyte" mode, 16 bits are always transferred as a pair, with the
   * lowest 8 bits followed by the highest 8 bits (both 8 bit transfers are to the same IO port,
   * sequentially -- a word transfer will not work)."
   */
-  outb(PIT_CHAN0,out_lowB);
-  outb(PIT_CHAN0,out_highB);
+  // outb(PIT_CHAN0,out_lowB);
+  // outb(PIT_CHAN0,out_highB);
+  outb(out_lowB,PIT_CHAN0);
+  outb(out_highB,PIT_CHAN0);
 }
 
 /*bits to output to PIT_REG_MODE port! From documentation

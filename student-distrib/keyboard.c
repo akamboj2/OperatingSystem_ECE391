@@ -61,7 +61,7 @@ int kb3_pos = 0;
  * Inputs: None
  * Outputs: Reads keyboard scancodes and outputs to video memory
  * Side Effects: Modifies keyboard_buffer
- *               Miight clear video memory
+ *
  */
 void keyboard_handler(){
 	char char_list[53] = {'\0','1','2','3','4','5','6','7',
@@ -131,7 +131,6 @@ void keyboard_handler(){
 			else if(curr_terminal == 3)
 				kb3_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb1_pos;
-			//switch_terminal(curr_terminal, 1); //(from,to)
 			switch_flag = 1;
 		}
 		else if(c == _F2 && curr_terminal != 2){
@@ -144,7 +143,6 @@ void keyboard_handler(){
 			else if(curr_terminal == 3)
 				kb3_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb2_pos;
-			//switch_terminal(curr_terminal, 2); //(from,to)
 			switch_flag = 2;
 		}
 		else if(c == _F3 && curr_terminal != 3){
@@ -157,7 +155,6 @@ void keyboard_handler(){
 			else if(curr_terminal == 2)
 				kb2_pos = keyboard_buffer_index;
 			keyboard_buffer_index = kb3_pos;
-			//switch_terminal(curr_terminal, 3); //(from,to)
 			switch_flag = 3;
 		}
 	}
@@ -165,36 +162,21 @@ void keyboard_handler(){
     if(keyboard_buffer_index < KB_BUF_SIZE){
       char print_char = ' ';
       keyboard_buffer[keyboard_buffer_index] = print_char;
-      //keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
       putc2(print_char);
     }
   }
-  /*else if(c == 0x0F){
-    prev_tab = TRUE;
-    if(keyboard_buffer_index < 122){
-      char print_char = ' ';
-      keyboard_buffer[keyboard_buffer_index] = print_char;
-      keyboard_buffer[keyboard_buffer_index + TAB] = '\0';
-      keyboard_buffer_index+=TAB;
-      int i;
-      for(i = 0; i<TAB; i++)
-        printf("%c", print_char);
-    }
-  }*/
   else if(c == BACKSPACE && keyboard_buffer_index>0){		//adds backspace by overwriting previous char with a space
-		if (get_screenx()==0 && get_screeny()==0) return; //fixes bug of type,ctrl-l, backspace-->fault
-			set_cursors(get_screenx()-1, get_screeny());
-      putc2(' ');
-      set_cursors(get_screenx()-1, get_screeny());
-      update_cursor(get_screenx(), get_screeny());
-      keyboard_buffer_index--;
+		if (get_screenx()==0 && get_screeny()==0)
+			return; //fixes bug of type,ctrl-l, backspace-->fault
+		set_cursors(get_screenx()-1, get_screeny());
+    putc2(' ');
+    set_cursors(get_screenx()-1, get_screeny());
+		update_cursor(get_screenx(), get_screeny());
+    keyboard_buffer_index--;
+
   }
 	else if(c == ENTER_PRESS){		//when enter is pressed, call terminal read and write to repeat onto new line
-		/*if(keyboard_buffer_index < KB_BUF_SIZE){
-			char print_char = '\n';
-			putc2(print_char);
-		}*/
 		enter_flag = 1;
 	}
 	else if(c<=char_upper && c>=char_lower){		//outputs all other types of characters
@@ -207,12 +189,10 @@ void keyboard_handler(){
   		 print_char = upper_char_list[c-1];
     if(keyboard_buffer_index < KB_BUF_SIZE && print_char != '\0'){
       keyboard_buffer[keyboard_buffer_index] = print_char;
-      //keyboard_buffer[keyboard_buffer_index + 1] = '\0';
       keyboard_buffer_index++;
       putc2(print_char);
     }
 	}
-//send_eoi(1);
 }
 
 /*terminal_open
@@ -281,13 +261,28 @@ int32_t terminal_write(int32_t fd, const void* buf_t, int32_t nbytes){
 		return -1;
 	if(nbytes == 0)
 		return 0;
-	//if(nbytes < 0 || nbytes >= sizeof(buf)) //less than or equal to account for length the null char adds
-		//return -1;
-		//printf('\n');
 	int x = print_withoutnull((int8_t*)buf, nbytes);
-	// for(i = 0; i < KB_BUF_SIZE; i++){
-	// 	keyboard_buffer[i] = '\0';
-	// }
-	// keyboard_buffer_index = 0;
+		cli();
+		for(i = 0; i < KB_BUF_SIZE; i++){
+			//This code was initially to clear garbage typed in while a prog was running. Commented
+			//out because interfered by clearing the curr buffer when background process called write
+			//if(curr_scheduled == curr_terminal)
+				//keyboard_buffer[i] = '\0';
+			if(curr_scheduled == 1)
+				keyboard_buffer1[i] = '\0';
+			else if(curr_scheduled == 2)
+				keyboard_buffer2[i] = '\0';
+			else if(curr_scheduled == 3)
+				keyboard_buffer3[i] = '\0';
+		}
+		//if(curr_scheduled == curr_terminal)
+			//keyboard_buffer_index = 0;
+		if(curr_scheduled == 1)
+			kb1_pos = 0;
+		else if(curr_scheduled == 2)
+			kb2_pos = 0;
+		else if(curr_scheduled == 3)
+			kb3_pos = 0;
+	sti();
 	return x;
 }

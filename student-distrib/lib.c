@@ -127,7 +127,6 @@ void switch_terminal(int from, int to) {
   curr_terminal = to;
 
   update_cursor(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
-  //set_cursors(screen_x[curr_terminal-1], screen_y[curr_terminal-1]);
   for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
       *(uint8_t *)(f + (i << 1)) = *(uint8_t *)(VIDEO + (i << 1));
       *(uint8_t *)(VIDEO + (i << 1)) = *(uint8_t *)(t + (i << 1));
@@ -165,6 +164,7 @@ void set_cursors(int pos_x, int pos_y){
     pos_x=NUM_COLS-1;
   }
   if(pos_x<0 || pos_x >= NUM_COLS || pos_y<0 ||pos_y>=NUM_ROWS) return;
+  
   screen_x[curr_terminal-1] = pos_x;
   screen_y[curr_terminal-1] = pos_y;
 
@@ -512,9 +512,7 @@ void putc(uint8_t c) {
         screen_x[curr_scheduled-1] %= NUM_COLS;
     }
     if(screen_y[curr_scheduled-1] >= NUM_ROWS){
-      //cli();
       scroll(0);
-      //sti();
       screen_y[curr_scheduled-1]--;
       screen_x[curr_scheduled-1] = 0;
     }
@@ -538,9 +536,7 @@ void putc2(uint8_t c) {
         screen_x[curr_terminal-1] %= NUM_COLS;
     }
     if(screen_y[curr_terminal-1] >= NUM_ROWS){
-      //cli();
       scroll(1);
-      //sti();
       screen_y[curr_terminal-1]--;
       screen_x[curr_terminal-1] = 0;
     }

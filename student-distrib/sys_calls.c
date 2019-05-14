@@ -69,7 +69,7 @@ int32_t halt (uint8_t status){
   //restore parent paging
   if(pcb_to_be_halted->parent_task != NULL){
     pageDirectory[_4B] = (_8MB + (((pcb_to_be_halted->parent_task->process_num)-1)*_4MB)) | MAP_MASK;
-    highest_terminal_processes[curr_terminal-1] = pcb_to_be_halted->parent_task->process_num;
+    highest_terminal_processes[curr_scheduled-1] = pcb_to_be_halted->parent_task->process_num;
     tss.esp0 = pcb_to_be_halted->parent_task->esp0;
   }
   else{ //to restart a shell if it is parent most process in a terminal
@@ -258,20 +258,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes){
   pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
   if(buf == NULL || fd >= MAX_OPEN_FILES || fd < 0 || fd == 1 || cur_pcb->file_array[fd].flags == 0)
     return -1;
-  //printf("IN READ YAY!\n");
-  // int i =0;
-  // for(i=0;i<8;i++){//this just prints everything in file array
-  //   printf("at fd:%d flags=%d\n",i,cur_pcb->file_array[i].flags);
-  //   if (cur_pcb->file_array[i].flags){
-  //     printf(" File type: %d\n",cur_pcb->file_array[i].flags & -2);
-  //     cur_pcb->file_array[i].fops_table->read(0,NULL,0);//close(i);
-  //   }
-  // }
   int32_t position = cur_pcb->file_array[fd].fops_table->read(fd, buf, nbytes);
-  // if(position == 0 || position == -1)
-  //   return 0;
-  // cur_pcb->file_array[fd].f_pos += position;
-
   return position;
 }
 
@@ -314,7 +301,6 @@ int32_t open (const uint8_t* filename){
   if(read_dentry_by_name(filename, &entry) || cur_pcb->file_arr_size>=MAX_OPEN_FILES){ //find dentry and return -1 if it fails
     return -1;
   }
-  //printf("in open\n");
   //now find empty entry in file_array
   int fd = STDI_O; //this is loop counter and also holds empty index in file_array
   for(fd = STDI_O;fd < MAX_OPEN_FILES;fd++){
@@ -323,7 +309,6 @@ int32_t open (const uint8_t* filename){
       break;
     }
   }//at the end of this i should be index of empty entry
-//  printf("Found empty file of type:%d\n",entry.file_type);
   //determine file type
   //File types are 0 for...(RTC), 1 for the directory, and 2 for a regular file --from docs
   switch(entry.file_type){
@@ -346,8 +331,6 @@ int32_t open (const uint8_t* filename){
   cur_pcb->file_array[fd].f_pos=0; //file position should start at beginning for all file types
   cur_pcb->file_arr_size+=1;
   cur_pcb->file_array[fd].fops_table->open(filename);
-  //printf("Now set fd: %d to flags: %d\n",fd,cur_pcb->file_array[fd].flags);
-
   //finally return fd
   return fd;
 }
@@ -366,12 +349,10 @@ int32_t close (int32_t fd){
   pcb_t* cur_pcb=getPCB(  highest_terminal_processes[curr_terminal-1]);
   int first_fd_ind = STDI_O; //less than this is an invalid descriptor
   if ((fd < first_fd_ind || fd >= MAX_OPEN_FILES) || cur_pcb->file_array[fd].flags == 0){
-    //printf("fd=%d is invalid file_array index to close\n",fd);
     return -1;
   }
   cur_pcb->file_arr_size--;
   cur_pcb->file_array[fd].flags=0;
-//  printf("    fd:%d,flags now:%d\n",fd,cur_pcb->file_array[fd].flags);
 
   return 0;
 }
@@ -413,11 +394,8 @@ int32_t vidmap (uint8_t** screen_start){
   //first check if valid pointer (not null and within current process memory)
   uint32_t prog_start=_128MB, prog_end= USER_VID_ADDR;
   if (screen_start==NULL || (int32_t)screen_start<prog_start || (int32_t)screen_start>=prog_end){
-    //printf("Invalid pointer address 0x%x.\n",screen_start);
     return -1;
   }
-
-  //int32_t vid_page= VID_PAGE; //this is now in syscall.h
 
   //set page directory to correct physical address
   //below this should be the index USER_VID_ADDR/_4MB = 33

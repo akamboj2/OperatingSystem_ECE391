@@ -15,7 +15,7 @@ lib.o: lib.c lib.h types.h sys_calls.h filesys.h rtc.h keyboard.h \
   constants.h scheduler.h
 paging.o: paging.c paging.h constants.h types.h lib.h
 rtc.o: rtc.c x86_desc.h types.h idt.h rtc.h lib.h assembly_linkage.h \
-  sys_calls.h filesys.h keyboard.h constants.h i8259.h
+  sys_calls.h filesys.h keyboard.h constants.h i8259.h scheduler.h
 scheduler.o: scheduler.c scheduler.h idt.h lib.h types.h i8259.h \
   constants.h sys_calls.h filesys.h rtc.h keyboard.h paging.h x86_desc.h
 sys_calls.o: sys_calls.c sys_calls.h types.h filesys.h rtc.h keyboard.h \

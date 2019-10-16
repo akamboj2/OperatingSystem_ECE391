@@ -152,7 +152,7 @@ ret
 
 sys_call_table:
 .long 0 #sys_calls are from 1-10 so need to exclude zero?
-.long halt
+.long halt #i think this stores the address of the halt function (not the words halt)
 .long execute
 .long read
 .long write

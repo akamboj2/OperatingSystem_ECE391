@@ -1,3 +1,7 @@
+# Basic Linux Operating System
+
+Please view /student-distrib directory for files we created. 
+
 LOGISTICS
 -----
 ECE 391 MP3 
